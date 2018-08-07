@@ -1,0 +1,22 @@
+{
+  "name": "skeletor_web",
+  "version": "1.0.0",
+  "description": "An online metric extractor and repository for traces. ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pbhandar2/skeletor_web.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pbhandar2/skeletor_web/issues"
+  },
+  "homepage": "https://github.com/pbhandar2/skeletor_web#readme",
+  "dependencies": {
+    "express": "^4.16.3"
+  }
+}

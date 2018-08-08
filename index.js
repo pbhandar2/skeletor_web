@@ -42,10 +42,20 @@ app.use(session({
     resave: false
 }));
 
+
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 var http_server = http.createServer(app).listen(80);
+var io = require('socket.io').listen(http_server);
+const redisAdapter = require('socket.io-redis');
+io.adapter(redisAdapter({ host: 'localhost', port: 6379 }));
+
+io.on('connection', function(socket){
+
+});
+
 
 const uploads_path = "./uploads";
 if (fs.existsSync(uploads_path)) {
@@ -57,7 +67,8 @@ if (fs.existsSync(uploads_path)) {
 
 // Routes
 app.get('/', (req, res) => {
-	res.render('homepage', { 'userId': req.session.key })
+	io.emit("d5051590-9ad2-11e8-b775-b50a9fb836bc", "ss");
+	res.render('homepage', { 'userId': (req.session) ? req.session.key : null })
 });
 
 app.get('/traces', (req, res) => {
@@ -169,6 +180,7 @@ app.post('/trace/:traceId', function(req, res){
 				const data_location = form.uploadDir;
 				var start_date_string;
 				var num_files = 0;
+				var read_done = 0;
 				
 				const file_name = file.name;
 				const file_size = file.size;
@@ -206,11 +218,14 @@ app.post('/trace/:traceId', function(req, res){
 				    if (count > 0) {
 				        console.log('Final close:', output_file_name, count);
 				    }
-				    read_done = 1
 				    gzip_read_stream.close();
 				    outStream.end();
 				    console.log('Done');
 				    uploadAndProcess(`${id}/${file_name}/parts/part${file_count}`, output_file_name, file_count);
+				    read_done = 1
+		          	// send message to client that the extraction has completed and the required number of blocks
+		          	//io.emit(`extract_${id}`, { 'file': file.name, 'num_blocks': file_count });
+		          	io.emit(id, "Read the entire file");
 				});
 
 				function createNewWriteStream(id) {
@@ -272,6 +287,8 @@ app.post('/trace/:traceId', function(req, res){
 									// when all the lambda function has finished processing 
 									// call a socket to tell the page that new data is 
 									// avaialble 
+									console.log("num files is " + num_files);
+									console.log("read_count is " + read_count);
 									if (read_done && num_files == file_count) {
 										let end = moment();
 										let diff = end.diff(start);

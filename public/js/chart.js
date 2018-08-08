@@ -278,32 +278,37 @@ function zoomed() {
 //     $('html, body').animate({ scrollTop: $('#new_data_alert').offset().top }, 'slow');
 // });
 
-// const extract_socket_name = `extract_${id}`;
-// socket.on(extract_socket_name, function (data) {
-// 	console.log(data);
-// 	$('small').text("Extracting completed!");
-// 	lambda_needed = lambda_needed + data.num_blocks;
-//     const width = (lambda_completed/(lambda_needed + 1)) * 100;
-//     $('small').text("Calculating metrics!");
-//     $('#metric-bar').css('width', width + "%");
-// });
+const extract_socket_name = `extract_${id}`;
+socket.on(extract_socket_name, function (data) {
+	console.log(data);
+	$('small').text("Extracting completed!");
+	lambda_needed = lambda_needed + data.num_blocks;
+    const width = (lambda_completed/(lambda_needed + 1)) * 100;
+    $('small').text("Calculating metrics!");
+    $('#metric-bar').css('width', width + "%");
+});
 
-// const lambda_done_socket_name = `lambda_${id}`;
-// socket.on(lambda_done_socket_name, function () {
-// 	console.log("LAMBDAAA");
-// 	lambda_completed = lambda_completed + 1;
-//     const width = (lambda_completed/(lambda_needed + 1)) * 100;
-//     $('#metric-bar').css('width', width + "%");
-// });
+const lambda_done_socket_name = `lambda_${id}`;
+socket.on(lambda_done_socket_name, function () {
+	console.log("LAMBDAAA");
+	lambda_completed = lambda_completed + 1;
+    const width = (lambda_completed/(lambda_needed + 1)) * 100;
+    $('#metric-bar').css('width', width + "%");
+});
 
-// const calculation_done_socket_name = `calculation_done_${id}`;
-// socket.on(calculation_done_socket_name, function () {
-// 	console.log("DONEEEEEEEE");
-// 	$('small').text("Metric calculation completed");
-//     $('#metric-bar').css('width', 100 + "%");
-//     $('#new_data_alert').show();
-//     $('html, body').animate({ scrollTop: $('#new_data_alert').offset().top }, 'slow');
-// });
+const calculation_done_socket_name = `calculation_done_${id}`;
+socket.on(calculation_done_socket_name, function () {
+	console.log("DONEEEEEEEE");
+	$('small').text("Metric calculation completed");
+    $('#metric-bar').css('width', 100 + "%");
+    $('#new_data_alert').show();
+    $('html, body').animate({ scrollTop: $('#new_data_alert').offset().top }, 'slow');
+});
+
+socket.on(id, function (data) {
+	console.log("DONEEEEEEEE");
+	console.log(data);
+});
 
 
 

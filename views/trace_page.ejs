@@ -16,8 +16,9 @@
       const queue = <%- JSON.stringify(trace.queue) %>;
       const id = "<%= trace.id %>";
       var getUrl = window.location;
-      var baseUrl = getUrl .protocol + "//" + getUrl.host
-      //var socket = io(baseUrl);
+      var baseUrl = getUrl.protocol + "//" + getUrl.host;
+      console.log(baseUrl)
+      var socket = io(baseUrl);
     </script>
     <script src="/js/trace_page.js" "trace_id"=id></script>
     <script src="/js/main.js"></script>
@@ -37,7 +38,7 @@
           <strong>Success!</strong> Metric Calculation completed. <a class="reload_button">Click here</a> to refresh page. 
         </div>
       </div>
-      <% if(userId.id == trace.ownerId){ %>
+      <% if(userId && (userId.id == trace.ownerId)){ %>
          <div class="row">
            <h1><%= trace.name %></h1>
            <div class="col-xs-12">

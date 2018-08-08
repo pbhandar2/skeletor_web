@@ -50,7 +50,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 var http_server = http.createServer(app).listen(80);
-var https_server = https.createServer(app).listen(443);
+// var https_server = https.createServer(app).listen(443);
 var io = require('socket.io').listen(http_server);
 const redisAdapter = require('socket.io-redis');
 io.adapter(redisAdapter({ host: 'localhost', port: 6379 }));

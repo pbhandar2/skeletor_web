@@ -101,7 +101,7 @@ app.get('/traces/:traceId', (req, res) => {
 	}
 	ddb.query(params, function(err, data) {
 		if (err) console.log(err)
-		else res.render('trace_page', { 'trace': data.Items[0], 'userId': req.user  })
+		else res.render('trace_page', { 'trace': data.Items[0], 'userId': req.session.key  })
 	});
 });
 

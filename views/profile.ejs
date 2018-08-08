@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <title>Skeletor</title>
+    <script type="text/javascript">
+      const user = <%- JSON.stringify(user) %>;
+      console.log(user);
+    </script>
+    <script type="text/javascript" src="/js/main.js"></script>
+  </head>
+
+  <body>
+    <%- include("shared/navbar", { login: userId }) %>
+    <div class="container">
+      <div class="row">Welcome, <%= user.email %></div>
+      <div class="row">Traces</div>
+      <div class="row">
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            <%  user.traces.forEach(function(trace) { %>
+              <tr>
+                <td><a href="trace/<%= trace.id %>"><%= trace.name %></a></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <%- include("shared/footer") %>
+  </body>
+
+</html>

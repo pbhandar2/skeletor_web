@@ -3,7 +3,8 @@ const https = require('https');
 
 var express = require('express');
 var app = express();
-
+var path = require('path');
+var moment = require('moment');
 var redis   = require("redis");
 var session = require('express-session');
 var redisStore = require('connect-redis')(session);
@@ -23,6 +24,7 @@ app.use(flash());
 // AWS MODULE
 const aws_service = require('./modules/aws.js');
 const ddb = aws_service.ddb();
+const ddb_main = aws_service.ddb_main();
 const lambda = aws_service.lambda();
 const s3 = aws_service.s3();
 
@@ -48,6 +50,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 var http_server = http.createServer(app).listen(80);
+var https_server = https.createServer(app).listen(443);
 var io = require('socket.io').listen(http_server);
 const redisAdapter = require('socket.io-redis');
 io.adapter(redisAdapter({ host: 'localhost', port: 6379 }));
@@ -73,7 +76,7 @@ app.get('/', (req, res) => {
 
 app.get('/traces', (req, res) => {
 	var traces = [];
-	if (req.session.key && req.session.key.accessCode == "ibm_emory") {
+	if (req.session && req.session.key && req.session.key.accessCode == "ibm_emory") {
 		const params = {
 			TableName: "traces"
 		}
@@ -81,7 +84,7 @@ app.get('/traces', (req, res) => {
 			if (err) console.log(err)
 			else {
 				traces = data.Items;
-				res.render('list_traces', { 'traces': data.Items, 'userId': req.session.key });
+				res.render('list_traces', { 'traces': data.Items, 'userId': (req.session) ? req.session.key : null });
 			}
 		});
 	} else {
@@ -96,7 +99,7 @@ app.get('/traces', (req, res) => {
 			if (err) console.log(err)
 			else {
 				traces = data.Items;
-				res.render('list_traces', { 'traces': data.Items, 'userId': req.session.key });
+				res.render('list_traces', { 'traces': data.Items, 'userId': (req.session) ? req.session.key : null });
 			}
 		});
 	}
@@ -112,7 +115,7 @@ app.get('/traces/:traceId', (req, res) => {
 	}
 	ddb.query(params, function(err, data) {
 		if (err) console.log(err)
-		else res.render('trace_page', { 'trace': data.Items[0], 'userId': req.session.key  })
+		else res.render('trace_page', { 'trace': data.Items[0], 'userId': (req.session) ? req.session.key : null  })
 	});
 });
 
@@ -185,6 +188,10 @@ app.post('/trace/:traceId', function(req, res){
 				const file_name = file.name;
 				const file_size = file.size;
 
+				const num_blocks = Math.ceil(file_size/50000000) * 10;
+
+				io.emit(`extract_${req.params.traceId}`, { 'file': file.name, 'num_blocks': num_blocks });
+
 				// read the gz file and pipe the output to gunzip which gives the extracted output 
 				var gzip_read_stream = fs.createReadStream(`${data_location}/${file_name}`)
 					.pipe(zlib.Gunzip());
@@ -221,8 +228,8 @@ app.post('/trace/:traceId', function(req, res){
 				    gzip_read_stream.close();
 				    outStream.end();
 				    console.log('Done');
-				    uploadAndProcess(`${id}/${file_name}/parts/part${file_count}`, output_file_name, file_count);
-				    read_done = 1
+				    read_done = file_count + 1
+				    uploadAndProcess(`${id}/${file_name}/parts/${file_count}`, output_file_name, file_count);
 		          	// send message to client that the extraction has completed and the required number of blocks
 		          	//io.emit(`extract_${id}`, { 'file': file.name, 'num_blocks': file_count });
 		          	io.emit(id, "Read the entire file");
@@ -235,24 +242,23 @@ app.post('/trace/:traceId', function(req, res){
 				}
 
 				function uploadAndProcess(key, file_path, file_count) {
-					console.log("processed");
-					console.log(key);
-					console.log(file_path);
+					// console.log("processed");
+					// console.log(key);
+					// console.log(file_path);
 					var uploadParams = { Bucket: 'fstraces', Key: key , Body: ''};
 			        var fileStream = fs.createReadStream(file_path);
 			        fileStream.on('error', function(err) {
 			          console.log('File Error', err);
 			        });
 			        uploadParams.Body = fileStream;
-			        console.log("going to upload this");
+			        //console.log("going to upload this");
 			        s3.upload (uploadParams, function (err, data) {
-			        	console.log("inside upload");
+			        	//console.log("inside upload");
 						if (err) {
 							console.log("Error", err);
 						}
-
-						if (data) {
-				            console.log("Upload Success", data.Location);
+						else {
+				            //console.log("Upload Success", data.Location);
 
 				            fs.unlink(file_path, function(e) {
 				              if (e) console.log(e);
@@ -262,9 +268,9 @@ app.post('/trace/:traceId', function(req, res){
 
 				            const payload = {
 				              "key": key,
-				              "id": "test",
+				              "id": id,
 				              "file": file_name,
-				              "part": `part${file_count}`,
+				              "part": `${file_count}`,
 				              "start_date": start_date_string,
 				              "size": file_size,
 				              "lambda_needed": file_count
@@ -280,21 +286,37 @@ app.post('/trace/:traceId', function(req, res){
 									console.log('lambda error');
 									console.log(err, err.stack); 
 								} else {
-
+									io.emit(`lambda_${req.params.traceId}`);
 									num_files = num_files + 1;
 									// io.emit(`lambda_${m.traceId}`);
 									// process.send({ msg: "lambda" });
 									// when all the lambda function has finished processing 
 									// call a socket to tell the page that new data is 
 									// avaialble 
-									console.log("num files is " + num_files);
-									console.log("read_count is " + file_count);
-									if (read_done && num_files == file_count) {
-										let end = moment();
-										let diff = end.diff(start);
-										let f = moment.utc(diff).format("HH:mm:ss.SSS");
-										console.log(f);
+									//console.log("num files is " + num_files);
+									//console.log("read_count is " + file_count);
+									if (read_done && num_files == read_done) {
+										console.log("read done is " + read_done);
 										console.log(num_files);
+										
+							            const combine_json_payload = {
+							              "id": id,
+							              "file": file_name
+							            };
+							            lambda_params = {
+							             FunctionName: "arn:aws:lambda:us-east-2:722606526443:function:combine_json",
+							             Payload: JSON.stringify(combine_json_payload),
+							            };
+							            lambda.invoke(lambda_params, function(err, data) {
+							            	if (err) console.log(err, err.stack);
+							            	else {
+												let end = moment();
+												let diff = end.diff(start);
+												let f = moment.utc(diff).format("HH:mm:ss.SSS");
+												console.log(f);
+							            		io.emit(`calculation_done_${req.params.traceId}`);
+							            	}
+							            });
 										// params = {
 										// 	ExpressionAttributeValues: {
 										// 		":id": idnum_
@@ -341,7 +363,7 @@ app.post('/trace/:traceId', function(req, res){
 });
 
 app.get('/signup', function(req, res) {
-	res.render('signup', { message: req.flash('signupMessage') });
+	res.render('signup', { message: req.flash('signupMessage'), 'userId': (req.session) ? req.session.key : null });
 });
 
 // process the signup form
@@ -353,7 +375,7 @@ app.post('/signup', passport.authenticate('local-signup', {
 
 app.get('/login', function(req, res) {
 		// render the page and pass in any flash data if it exists
-		res.render('login', { message: req.flash('loginMessage'), 'userId': req.user });
+		res.render('login', { message: req.flash('loginMessage'), 'userId': (req.session) ? req.session.key : null });
 });
 
 // process the login form
@@ -461,164 +483,24 @@ app.post('/add', (req, res) => {
 
 });
 
-var moment = require('moment');
-var path = require('path');
+app.get('/profile', (req, res) => {
+	if (req.session && req.session.key) {
+		const params = {
+			ExpressionAttributeValues: {
+				":email": req.session.key.email
+			},
+			KeyConditionExpression: "email = :email",
+			TableName: "users"
+		}
+		ddb.query(params, function(err, data) {
+			if (err) console.log(err)
+			else res.render('profile', { 'user': data.Items[0], 'userId': req.session.key })
+		});
+	}
+	else res.render('login', { message: '', 'userId': req.session.key });
+});
 
 app.get('/reset', (req, res) => {
 	res.render('reset')
 });
 
-//server.listen(80, ()=>console.log("started"));
-app.post('/test', function(req, res){
-	console.log("IN TESTTTTTTTTTT");
-	const start = moment();
-
-	const zlib = require('zlib');
-	var file_count = 0; // the count for the file name
-	var count = 0; // counting the number of lines for the current file 
-	var output_file_name; // the output file name that changes everytime
-	var outStream; // the outstream that will change when the line limit is hit 
-	createNewWriteStream(); // create the initial write stream 
-	const data_location = '/home/pranav/Desktop/Research/IBM/gpfs_trace/'
-	const file_name = 'trcrpt.2017-12-03_22.58.57.1673.bison03fast0.gz';
-	const id = "test";
-	var start_date_string;
-
-	const stats = fs.statSync(`${data_location}${file_name}`)
-	const file_size = stats.size
-	var read_done = 0;
-	var num_files = 0;
-	
-
-	// read the gz file and pipe the output to gunzip which gives the extracted output 
-	var gzip_read_stream = fs.createReadStream(`${data_location}${file_name}`)
-		.pipe(zlib.Gunzip());
-
-	// pipe the extracted files stream to readline to read it line by line
-	var lineReader = require('readline').createInterface({
-	    input: gzip_read_stream
-	});
-
-	// each line is placed on its proper part file 
-	lineReader.on('line', function(line) {
-		count++;
-		outStream.write(line + '\n');
-		if (!start_date_string) {
-			if (line.includes("begins:")) {
-	          var date_string = line.split("begins:")[1];
-	          const date_obj = moment(date_string, " ddd MMM  D HH:mm:ss YYYY");
-	          start_date_string = date_obj.format("YYYY-MM-DD-HH-mm-ss");
-	          console.log("The trace begins on " + start_date_string);
-			}
-		}
-		if (count > 360000) {
-			uploadAndProcess(`test/${file_name}/parts/part${file_count}`, output_file_name, file_count);
-			file_count++; // increase the file count so that the next file is created
-			outStream.end();
-			createNewWriteStream();
-		}
-	});
-
-	lineReader.on('close', function() {
-	    if (count > 0) {
-	        console.log('Final close:', output_file_name, count);
-	    }
-	    read_done = 1
-	    gzip_read_stream.close();
-	    outStream.end();
-	    console.log('Done');
-	    uploadAndProcess(`test/${file_name}/parts/part${file_count}`, output_file_name, file_count);
-	});
-
-	function createNewWriteStream() {
-		output_file_name = path.join(__dirname, '/uploads/test/part' + file_count);
-		outStream = fs.createWriteStream(output_file_name);
-		count = 0;
-	}
-
-	function uploadAndProcess(key, file_path, file_count) {
-		console.log("processed");
-		console.log(key);
-		console.log(file_path);
-		var uploadParams = { Bucket: 'fstraces', Key: key , Body: ''};
-        var fileStream = fs.createReadStream(file_path);
-        fileStream.on('error', function(err) {
-          console.log('File Error', err);
-        });
-        uploadParams.Body = fileStream;
-        console.log("going to upload this");
-        s3.upload (uploadParams, function (err, data) {
-        	console.log("inside upload");
-			if (err) {
-				console.log("Error", err);
-			}
-
-			if (data) {
-	            console.log("Upload Success", data.Location);
-
-	            fs.unlink(file_path, function(e) {
-	              if (e) console.log(e);
-	            });
-
-	            // invoke lambda function to process the trace when the upload is a sucess
-
-	            const payload = {
-	              "key": key,
-	              "id": "test",
-	              "file": file_name,
-	              "part": `part${file_count}`,
-	              "start_date": start_date_string,
-	              "size": file_size,
-	              "lambda_needed": file_count
-	            };
-
-	            var lambda_params = {
-	             FunctionName: "arn:aws:lambda:us-east-2:722606526443:function:process_gpfs_trace",
-	             Payload: JSON.stringify(payload),
-	            };
-
-				lambda.invoke(lambda_params, function(err, data) {
-					if (err) {
-						console.log('lambda error');
-						console.log(err, err.stack); 
-					} else {
-
-						num_files = num_files + 1;
-						// io.emit(`lambda_${m.traceId}`);
-						// process.send({ msg: "lambda" });
-						// when all the lambda function has finished processing 
-						// call a socket to tell the page that new data is 
-						// avaialble 
-						if (read_done && num_files == file_count) {
-							let end = moment();
-							let diff = end.diff(start);
-							let f = moment.utc(diff).format("HH:mm:ss.SSS");
-							console.log(f);
-							params = {
-								ExpressionAttributeValues: {
-									":id": id
-								},
-								KeyConditionExpression: "id = :id",
-								TableName: "traces"
-							}
-
-							setTimeout(function () {
-								ddb.query(params, function(err, data) {
-									if (err) console.log(err)
-									else {
-										console.log("DAKNLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
-										//io.emit("metricChange", data.Items[0]);
-										//io.emit(`calculation_done_${req.params.traceId}`);
-										//process.send({ msg: "done" });
-									}
-								});
-							}, 5000);
-
-						}
-					}
-				});
-			}
-        });
-	}
-
-});

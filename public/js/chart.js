@@ -77,7 +77,9 @@ $("#add_metric").on("click", function(e) {
 	const select_value = document.getElementById("add_metric_value").value;
 
 	if (selected_metrics_values.indexOf(select_value) < 0) {
-		$("#selected_metrics").append("<span id='" + select_value + "' class='badge' onclick='removeMetric(this.id);'>" + select_value + '</span>');
+		const color = colorScale(select.indexOf(select_value)).toString();
+		console.log(color);
+		$("#selected_metrics").append("<span style='background-color:" + color + ";' id='" + select_value + "' class='badge' onclick='removeMetric(this.id);'>" + select_value + '</span>');
 
 		// current y-axis domain
 	    const current_max_y = y.domain();
@@ -160,6 +162,7 @@ function loadData() {
 			.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 			.call(zoom);
 
+
 	});
 }
 
@@ -188,6 +191,7 @@ function addMetric(select_value) {
         .attr("id", select_value+"_context")
         .style("stroke", colorScale(select_index))
         .attr("d", line2);
+
 }
 
 /*

@@ -7,8 +7,10 @@
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <title>Skeletor</title>
     <script type="text/javascript">
-      const user = <%- JSON.stringify(user) %>;
+      const user = <%- JSON.stringify(userId) %>;
+      const queue = <%- JSON.stringify(queue) %>;
       console.log(user);
+      console.log(queue);
     </script>
     <script type="text/javascript" src="/js/main.js"></script>
   </head>
@@ -16,9 +18,9 @@
   <body>
     <%- include("shared/navbar", { login: userId }) %>
     <div class="container">
-      <div class="row">Welcome, <%= user.email %></div>
-      <div class="row">Traces</div>
-      <div class="row">
+      <div class="row main-text">Welcome, <%= user.email %></div>
+      <div class="row card">
+        <p class="title-text">Traces</p>
         <table class="table">
           <thead>
             <tr>
@@ -34,6 +36,31 @@
           </tbody>
         </table>
       </div>
+      <% if(user.accessCode == "ibm_emory"){ %>
+        <div class="row card">
+          <p class="title-text">Queries</p>
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Title</th>
+                <th scope="col">By</th>
+                <th scope="col">Description</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <%  for(let i = 1; i <= queue.length; i++) { %>
+                <tr>
+                  <td><%= queue[queue.length-i].title %></td>
+                  <td><%= queue[queue.length-i].user.key.email %></td>
+                  <td><%= queue[queue.length-i].description %></td>
+                  <td><%= queue[queue.length-i].status %></td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
     </div>
     <%- include("shared/footer") %>
   </body>

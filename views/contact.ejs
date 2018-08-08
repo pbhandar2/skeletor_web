@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="stylesheet" href="/css/main.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
+    <title>Public Traces</title>
+    <script type="text/javascript" src="/js/main.js"></script>
+  </head>
+
+  <body>
+    <%- include("shared/navbar", { login: userId }) %>
+    <div class="container">
+      <!-- show any messages that come back with authentication -->
+      <% if (message.length > 0) { %>
+          <div class="alert alert-danger"><%= message %></div>
+      <% } %>
+    
+      <div class="row card">
+        <p class="title-text">Query Form</p>
+        <form ref='addTraceForm'
+          id='addQueryForm'
+          action='/contact'
+          method='post'>
+          <div class="form-group">
+            <label for="title content-text">Title</label>
+            <input type="text" class="form-control" name="title" placeholder="title">
+          </div>
+          <div class="form-group">
+            <label for="Short Description content-text">Description</label>
+            <textarea rows="4" class="form-control" name="description"></textarea>
+          </div>
+          <button type="submit" class="btn btn-success btn-lg"><span class="content-text">Submit</span></button>
+        </form>
+      </div>
+    </div>
+    <%- include("shared/footer") %>
+  </body>
+
+</html>

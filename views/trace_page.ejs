@@ -18,6 +18,7 @@
       var getUrl = window.location;
       var baseUrl = getUrl.protocol + "//" + getUrl.host;
       console.log(baseUrl)
+      console.log(files);
       var socket = io(baseUrl);
     </script>
     <script src="/js/trace_page.js" "trace_id"=id></script>
@@ -41,35 +42,46 @@
       <% if(userId && (userId.id == trace.ownerId)){ %>
          <div class="row card">
            <div class="col-xs-12">
-             <div class="panel panel-default">
-               <div class="panel-body">
-                 <span class="glyphicon glyphicon-cloud-upload"></span>
-                 <div class="progress">
-                   <div class="progress-bar" id="upload-bar" style="background-color: green;" role="progressbar">
+            <div class="row">
+               <div class="panel panel-default">
+                 <div class="panel-body">
+                   <span class="glyphicon glyphicon-cloud-upload"></span>
+                   <div class="progress">
+                     <div class="progress-bar" id="upload-bar" style="background-color: green;" role="progressbar">
+                     </div>
                    </div>
                  </div>
                </div>
              </div>
+             <div class="row">
+               <form ref='uploadForm'
+                 id='uploadForm'
+                 encType="multipart/form-data">
+                   <input type="file"  class="input-file" multiple="multiple" />
+                   <button type="submit" class="upload-btn">Submit</button>
+               </form>
+            </div>
            </div>
          </div>
-         <div class="row card">
-           <form ref='uploadForm'
-             id='uploadForm'
-             encType="multipart/form-data">
-               <input type="file"  class="input-file" multiple="multiple" />
-               <button type="submit" class="upload-btn">Submit</button>
-           </form>
-        </div>
         <div class="row card">
-          <div class="progress position-relative metric-progress-container">
-              <div class="progress-bar" role="progressbar" id="metric-bar" style="height: 50px; text-align: center;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
+          <p class="title-text">Metric Status</p>
+          <div class="progress position-relative metric-progress-container" style="height: 30px; text-align: center;">
+              <div class="progress-bar" role="progressbar" id="metric-bar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
               <small class="justify-content-center d-flex position-absolute w-100"></small>
           </div>
         </div>
       <% } else{ %>
       <% } %>
 
-    <div class="row card"><h2 id="loading"></h2></div>
+    <% if(!trace.files.length){ %>
+    <div class="row card"><h3 id="no-data-message"></h3></div>
+
+    <% } else{ %>
+
+    <div class="row card loading-container"><h2 id="loading"></h2></div>
+
+    <% } %>
+
     <div class="row card" id="chart-container">
       <div class="col-xs-12">
         <div class="row" id="chart-main"><svg id="svg1" width="1100" height="600"></svg></div>
@@ -80,9 +92,26 @@
         <div id="selected_metrics"></div>
       </div>
     </div>
-    <% if(!trace.files.length){ %>
-    <div class="row card"><h3 id="no-data-message"></h3></div>
-    <% } %>
+
+
+    <div class="row card">
+      <p class="title-text">Files</p>
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          <%  for(let i = 0; i < trace.files.length; i++) { %>
+            <tr>
+              <td><%= trace.files[i].name %></td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
     </div>
    </div>
    <%- include("shared/footer") %>

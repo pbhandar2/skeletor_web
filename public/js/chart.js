@@ -104,6 +104,7 @@ function loadData() {
 	d3.json(`https://s3.us-east-2.amazonaws.com/fstraces/${id}/final.json`, function (error, d) {
 	    if (error) throw error;
 	  	document.getElementById("loading").innerHTML = "";
+	  	$(".loading-container").hide();
 	  	data = [];
 	  	metric_value_range = {};
 

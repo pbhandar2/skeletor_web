@@ -485,22 +485,72 @@ app.post('/add', (req, res) => {
 
 app.get('/profile', (req, res) => {
 	if (req.session && req.session.key) {
-		const params = {
-			ExpressionAttributeValues: {
-				":email": req.session.key.email
-			},
-			KeyConditionExpression: "email = :email",
-			TableName: "users"
+		// const params = {
+		// 	ExpressionAttributeValues: {
+		// 		":email": req.session.key.email
+		// 	},
+		// 	KeyConditionExpression: "email = :email",
+		// 	TableName: "users"
+		// }
+		// ddb.query(params, function(err, data) {
+		// 	if (err) console.log(err)
+		// 	else res.render('profile', { 'user': data.Items[0], 'userId': req.session.key })
+		// });
+
+		if (req.session.key.accessCode == "ibm_emory") {
+			const queue_params = {
+				TableName: "queue"
+			}
+			ddb.scan(queue_params, function(err, data) {
+				if (err) console.log(err)
+				else {
+					queue = data.Items;
+					res.render('profile', { 'queue': data.Items, 'user': req.session.key, 'userId': req.session.key });
+				}
+			});
+		} else {
+			res.render('profile', { 'queue': [], 'user': req.session.key, 'userId': req.session.key });
 		}
-		ddb.query(params, function(err, data) {
-			if (err) console.log(err)
-			else res.render('profile', { 'user': data.Items[0], 'userId': req.session.key })
-		});
 	}
 	else res.render('login', { message: '', 'userId': req.session.key });
 });
 
 app.get('/reset', (req, res) => {
 	res.render('reset')
+});
+
+app.get('/metrics', (req, res) => {
+	res.render('metrics', { 'userId': (req.session) ? req.session.key : null })
+});
+
+app.get('/contact', (req, res) => {
+	if (req.session && req.session.key) res.render('contact', { message: '', 'userId': (req.session) ? req.session.key : null })
+	else res.render('login', { message: '', 'userId': req.session.key });
+});
+
+app.post('/contact', (req, res) => {
+
+	var query_object = req.body;
+	const now = new Date();
+	query_object.date = now.toString();
+	query_object.status = "active";
+	query_object.user = req.session;
+	var params = {
+		Item: query_object,
+		TableName: "queue"
+	}
+
+	ddb.put(params, function(err, data) {
+		if (err) {
+			console.log(err);
+			req.flash('contactMessage', "There was an error in submitting your query.");
+			res.render('contact', { message: req.flash('contactMessage'), 'userId': req.session.key });
+		}
+		else {
+			req.flash('contactMessage', "Your query has been submitted. We will get back to you as soon as we can.");
+			res.render('contact', { message: req.flash('contactMessage'), 'userId': req.session.key });
+		}
+	});
+
 });
 

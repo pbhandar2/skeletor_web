@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <title>Skeletor</title>
+    <script type="text/javascript" src="/js/main.js"></script>
+  </head>
+
+  <body>
+    <%- include("shared/navbar", { login: userId }) %>
+    <div class="container">
+      <div class="row card">
+        <p class="title-text">Metrics</p>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="content-text">Operation Count</td>
+              <td class="content-text">A count of file system operations.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <%- include("shared/footer") %>
+  </body>
+
+</html>

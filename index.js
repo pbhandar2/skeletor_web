@@ -8,6 +8,7 @@ var redis   = require("redis");
 var session = require('express-session');
 var redisStore = require('connect-redis')(session);
 var bodyParser = require('body-parser');
+var formidable = require('formidable');
 
 // PASSPORT MODULE
 var passport = require('passport');
@@ -60,7 +61,6 @@ app.get('/', (req, res) => {
 });
 
 app.get('/traces', (req, res) => {
-	console.log(req.session.key);
 	var traces = [];
 	if (req.session.key && req.session.key.accessCode == "ibm_emory") {
 		const params = {
@@ -103,6 +103,224 @@ app.get('/traces/:traceId', (req, res) => {
 		if (err) console.log(err)
 		else res.render('trace_page', { 'trace': data.Items[0], 'userId': req.session.key  })
 	});
+});
+
+app.post('/trace/:traceId', function(req, res){
+
+	// create an incoming form object
+	var form = new formidable.IncomingForm();
+
+	// specify that we want to allow the user to upload multiple files in a single request
+	form.multiples = true;
+
+	form.maxFileSize = 2097314290000;
+
+	// store all uploads in the /uploads directory
+	form.uploadDir = path.join(__dirname, '/uploads/' + req.params.traceId);
+
+	const start = moment();
+
+	// every time a file has been uploaded successfully,
+	// rename it to it's orignal name
+	form.on('file', function(field, file) {
+
+		// move the file to the proper directory
+		fs.rename(file.path, path.join(form.uploadDir, file.name), (error) => {
+			if (error) console.log("An error occured while renaming and moving the file." + error);
+			else {
+
+			    // updating the file information to the queue in the database 
+			    const ddb_res = ddb.update({
+			      TableName: "traces",
+			      Key: { id: req.params.traceId },
+			      UpdateExpression: 'set #queue.#file_name = :file_object',
+			      ExpressionAttributeNames: {
+			        '#file_name': file.name,
+			        '#queue': 'queue'
+			      },
+			      ConditionExpression: 'attribute_not_exists(#queue.#file_name)',
+			      ExpressionAttributeValues: {
+			        ':file_object': {
+			          'name': file.name,
+			          'size': file.size,
+			          'done': 0,
+			          'need': 1000000000000,
+			        }
+			      }
+			      }, function(data, err) {
+			        if (err.stack) console.log("Eroor in adding file information to the database " + JSON.stringify(err.stack));
+			        else {
+			          // send message to client that the extraction has completed and the required number of blocks
+			          // io.emit(`extract_${req.params.traceId}`, { 'file': file.name, 'num_blocks': num_blocks });
+			          console.log("done");
+			        }
+			    });
+
+			    console.log(req.params.traceId);
+
+
+				const zlib = require('zlib');
+				const id = req.params.traceId;
+				var file_count = 0; // the count for the file name
+				var count = 0; // counting the number of lines for the current file 
+				var output_file_name; // the output file name that changes everytime
+				var outStream; // the outstream that will change when the line limit is hit 
+				createNewWriteStream(id); // create the initial write stream 
+				const data_location = form.uploadDir;
+				var start_date_string;
+				var num_files = 0;
+				
+				const file_name = file.name;
+				const file_size = file.size;
+
+				// read the gz file and pipe the output to gunzip which gives the extracted output 
+				var gzip_read_stream = fs.createReadStream(`${data_location}/${file_name}`)
+					.pipe(zlib.Gunzip());
+
+				// pipe the extracted files stream to readline to read it line by line
+				var lineReader = require('readline').createInterface({
+				    input: gzip_read_stream
+				});
+
+				// each line is placed on its proper part file 
+				lineReader.on('line', function(line) {
+					count++;
+					outStream.write(line + '\n');
+					if (!start_date_string) {
+						if (line.includes("begins:")) {
+				          var date_string = line.split("begins:")[1];
+				          const date_obj = moment(date_string, " ddd MMM  D HH:mm:ss YYYY");
+				          start_date_string = date_obj.format("YYYY-MM-DD-HH-mm-ss");
+				          console.log("The trace begins on " + start_date_string);
+						}
+					}
+					if (count > 400000) {
+						uploadAndProcess(`${id}/${file_name}/parts/part${file_count}`, output_file_name, file_count);
+						file_count++; // increase the file count so that the next file is created
+						outStream.end();
+						createNewWriteStream(id);
+					}
+				});
+
+				lineReader.on('close', function() {
+				    if (count > 0) {
+				        console.log('Final close:', output_file_name, count);
+				    }
+				    read_done = 1
+				    gzip_read_stream.close();
+				    outStream.end();
+				    console.log('Done');
+				    uploadAndProcess(`${id}/${file_name}/parts/part${file_count}`, output_file_name, file_count);
+				});
+
+				function createNewWriteStream(id) {
+					output_file_name = path.join(__dirname, `/uploads/${id}/part` + file_count);
+					outStream = fs.createWriteStream(output_file_name);
+					count = 0;
+				}
+
+				function uploadAndProcess(key, file_path, file_count) {
+					console.log("processed");
+					console.log(key);
+					console.log(file_path);
+					var uploadParams = { Bucket: 'fstraces', Key: key , Body: ''};
+			        var fileStream = fs.createReadStream(file_path);
+			        fileStream.on('error', function(err) {
+			          console.log('File Error', err);
+			        });
+			        uploadParams.Body = fileStream;
+			        console.log("going to upload this");
+			        s3.upload (uploadParams, function (err, data) {
+			        	console.log("inside upload");
+						if (err) {
+							console.log("Error", err);
+						}
+
+						if (data) {
+				            console.log("Upload Success", data.Location);
+
+				            fs.unlink(file_path, function(e) {
+				              if (e) console.log(e);
+				            });
+
+				            // invoke lambda function to process the trace when the upload is a sucess
+
+				            const payload = {
+				              "key": key,
+				              "id": "test",
+				              "file": file_name,
+				              "part": `part${file_count}`,
+				              "start_date": start_date_string,
+				              "size": file_size,
+				              "lambda_needed": file_count
+				            };
+
+				            var lambda_params = {
+				             FunctionName: "arn:aws:lambda:us-east-2:722606526443:function:process_gpfs_trace",
+				             Payload: JSON.stringify(payload),
+				            };
+
+							lambda.invoke(lambda_params, function(err, data) {
+								if (err) {
+									console.log('lambda error');
+									console.log(err, err.stack); 
+								} else {
+
+									num_files = num_files + 1;
+									// io.emit(`lambda_${m.traceId}`);
+									// process.send({ msg: "lambda" });
+									// when all the lambda function has finished processing 
+									// call a socket to tell the page that new data is 
+									// avaialble 
+									if (read_done && num_files == file_count) {
+										let end = moment();
+										let diff = end.diff(start);
+										let f = moment.utc(diff).format("HH:mm:ss.SSS");
+										console.log(f);
+										console.log(num_files);
+										// params = {
+										// 	ExpressionAttributeValues: {
+										// 		":id": idnum_
+										// 	},
+										// 	KeyConditionExpression: "id = :id",
+										// 	TableName: "traces"
+										// }
+
+
+										// 	ddb.query(params, function(err, data) {
+										// 		if (err) console.log(err)
+										// 		else {
+										// 			console.log("DAKNLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
+										// 			//io.emit("metricChange", data.Items[0]);
+										// 			//io.emit(`calculation_done_${req.params.traceId}`);
+										// 			//process.send({ msg: "done" });
+										// 		}
+										// 	});
+
+									}
+								}
+							});
+						}
+			        });
+				}
+			}
+		});
+	});
+
+	// log any errors that occur
+	form.on('error', function(err) {
+		console.log('An error has occured during file upload: \n' + err);
+	});
+
+  	// once all the files have been uploaded, send a response to the client
+  	form.on('end', function() {
+		console.log("file upload sucessfull");
+	});
+
+	// parse the incoming request containing the form data
+	form.parse(req);
+
+	res.send('ok');
 });
 
 app.get('/signup', function(req, res) {
@@ -156,7 +374,9 @@ app.post('/add', (req, res) => {
 		display: (req.body.trace_display == "on") ? true : false,
     	queue: {},
     	files: [],
-    	type: "IBM GPFS"
+    	type: "IBM GPFS",
+    	ownerId: req.session.key.id,
+    	ownerEmail: req.session.key.email
 	}
 
 	var params = {
@@ -221,5 +441,167 @@ app.post('/add', (req, res) => {
 
 		}
 	});
+
+});
+
+var moment = require('moment');
+var path = require('path');
+
+app.get('/reset', (req, res) => {
+	res.render('reset')
+});
+
+//server.listen(80, ()=>console.log("started"));
+app.post('/test', function(req, res){
+	console.log("IN TESTTTTTTTTTT");
+	const start = moment();
+
+	const zlib = require('zlib');
+	var file_count = 0; // the count for the file name
+	var count = 0; // counting the number of lines for the current file 
+	var output_file_name; // the output file name that changes everytime
+	var outStream; // the outstream that will change when the line limit is hit 
+	createNewWriteStream(); // create the initial write stream 
+	const data_location = '/home/pranav/Desktop/Research/IBM/gpfs_trace/'
+	const file_name = 'trcrpt.2017-12-03_22.58.57.1673.bison03fast0.gz';
+	const id = "test";
+	var start_date_string;
+
+	const stats = fs.statSync(`${data_location}${file_name}`)
+	const file_size = stats.size
+	var read_done = 0;
+	var num_files = 0;
+	
+
+	// read the gz file and pipe the output to gunzip which gives the extracted output 
+	var gzip_read_stream = fs.createReadStream(`${data_location}${file_name}`)
+		.pipe(zlib.Gunzip());
+
+	// pipe the extracted files stream to readline to read it line by line
+	var lineReader = require('readline').createInterface({
+	    input: gzip_read_stream
+	});
+
+	// each line is placed on its proper part file 
+	lineReader.on('line', function(line) {
+		count++;
+		outStream.write(line + '\n');
+		if (!start_date_string) {
+			if (line.includes("begins:")) {
+	          var date_string = line.split("begins:")[1];
+	          const date_obj = moment(date_string, " ddd MMM  D HH:mm:ss YYYY");
+	          start_date_string = date_obj.format("YYYY-MM-DD-HH-mm-ss");
+	          console.log("The trace begins on " + start_date_string);
+			}
+		}
+		if (count > 360000) {
+			uploadAndProcess(`test/${file_name}/parts/part${file_count}`, output_file_name, file_count);
+			file_count++; // increase the file count so that the next file is created
+			outStream.end();
+			createNewWriteStream();
+		}
+	});
+
+	lineReader.on('close', function() {
+	    if (count > 0) {
+	        console.log('Final close:', output_file_name, count);
+	    }
+	    read_done = 1
+	    gzip_read_stream.close();
+	    outStream.end();
+	    console.log('Done');
+	    uploadAndProcess(`test/${file_name}/parts/part${file_count}`, output_file_name, file_count);
+	});
+
+	function createNewWriteStream() {
+		output_file_name = path.join(__dirname, '/uploads/test/part' + file_count);
+		outStream = fs.createWriteStream(output_file_name);
+		count = 0;
+	}
+
+	function uploadAndProcess(key, file_path, file_count) {
+		console.log("processed");
+		console.log(key);
+		console.log(file_path);
+		var uploadParams = { Bucket: 'fstraces', Key: key , Body: ''};
+        var fileStream = fs.createReadStream(file_path);
+        fileStream.on('error', function(err) {
+          console.log('File Error', err);
+        });
+        uploadParams.Body = fileStream;
+        console.log("going to upload this");
+        s3.upload (uploadParams, function (err, data) {
+        	console.log("inside upload");
+			if (err) {
+				console.log("Error", err);
+			}
+
+			if (data) {
+	            console.log("Upload Success", data.Location);
+
+	            fs.unlink(file_path, function(e) {
+	              if (e) console.log(e);
+	            });
+
+	            // invoke lambda function to process the trace when the upload is a sucess
+
+	            const payload = {
+	              "key": key,
+	              "id": "test",
+	              "file": file_name,
+	              "part": `part${file_count}`,
+	              "start_date": start_date_string,
+	              "size": file_size,
+	              "lambda_needed": file_count
+	            };
+
+	            var lambda_params = {
+	             FunctionName: "arn:aws:lambda:us-east-2:722606526443:function:process_gpfs_trace",
+	             Payload: JSON.stringify(payload),
+	            };
+
+				lambda.invoke(lambda_params, function(err, data) {
+					if (err) {
+						console.log('lambda error');
+						console.log(err, err.stack); 
+					} else {
+
+						num_files = num_files + 1;
+						// io.emit(`lambda_${m.traceId}`);
+						// process.send({ msg: "lambda" });
+						// when all the lambda function has finished processing 
+						// call a socket to tell the page that new data is 
+						// avaialble 
+						if (read_done && num_files == file_count) {
+							let end = moment();
+							let diff = end.diff(start);
+							let f = moment.utc(diff).format("HH:mm:ss.SSS");
+							console.log(f);
+							params = {
+								ExpressionAttributeValues: {
+									":id": id
+								},
+								KeyConditionExpression: "id = :id",
+								TableName: "traces"
+							}
+
+							setTimeout(function () {
+								ddb.query(params, function(err, data) {
+									if (err) console.log(err)
+									else {
+										console.log("DAKNLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
+										//io.emit("metricChange", data.Items[0]);
+										//io.emit(`calculation_done_${req.params.traceId}`);
+										//process.send({ msg: "done" });
+									}
+								});
+							}, 5000);
+
+						}
+					}
+				});
+			}
+        });
+	}
 
 });

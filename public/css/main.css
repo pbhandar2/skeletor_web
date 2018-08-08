@@ -2,14 +2,20 @@
 
 footer {
 	margin-top: 50px;
-	border: 1px solid black;
 	padding: 20px;
-	background: #96858f
+	background: #9099a2
 }
 
 .card {
 	border: 2px solid #6d7993;
 	padding: 10px;
+	margin-top: 10px;
+}
+
+.title-text {
+	font-family: 'Chivo', sans-serif;
+	font-size: 2.2em;
+	font-weight: bold;	
 }
 
 .main-text {

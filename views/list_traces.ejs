@@ -16,33 +16,46 @@
   <body>
     <%- include("shared/navbar", { login: userId }) %>
     <div class="container">
-      <div class="row">
+      <div class="row card">
+        <p class="title-text">Create a Trace Set</p>
         <form ref='addTraceForm'
           id='addTraceForm'
           action='/add'
           method='post'>
           <div class="form-group">
-            <label for="Trace Set Name">Name</label>
+            <label for="Trace Set Name content-text">Name</label>
             <input type="text" class="form-control" name="name" placeholder="Trace Set Name">
           </div>
           <div class="form-group">
-            <label for="Short Description">Description</label>
+            <label for="Short Description content-text">Description</label>
             <textarea rows="4" class="form-control" name="description"></textarea>
           </div>
           <div class="form-group">
-            <label class="form-check-label" for="Public/Private Type">Private?</label>
+            <label class="form-check-label content-text" for="Public/Private Type">Private?</label>
             <input type="checkbox" class="form-check-input" name="trace_display">
           </div>
-          <button type="submit" class="btn btn-success btn-lg">Create Trace</button>
+          <button type="submit" class="btn btn-success btn-lg"><span class="content-text">Create Trace</span></button>
         </form>
       </div>
-      <div class="row">
-        <h2>Trace List</h2>
-        <% for(let i = 0; i < traces.length; i++) { %>
-          <article>
-            <h5><a href='traces/<%= traces[i].id %>'><%= traces[i].name %></a></h5>
-          </article>
-        <% } %>
+
+      <div class="row card">
+        <p class="title-text">Public Traces</p>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Name</th>
+              <th scope="col">Type</th>
+            </tr>
+          </thead>
+          <tbody>
+            <%  for(let i = 0; i < traces.length; i++) { %>
+              <tr>
+                <td><a  class="content-text" href='traces/<%= traces[i].id %>'><%= traces[i].name %></a></td>
+                <td><p  class="content-text"><%= traces[i].type %></p></td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
       </div>
     </div>
     <%- include("shared/footer") %>

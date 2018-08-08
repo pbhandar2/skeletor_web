@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <link rel="stylesheet" href="/css/chart.css">
     <link rel="stylesheet" href="/css/trace_page.css">
+    <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://d3js.org/d3.v4.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
@@ -26,37 +27,46 @@
     <%- include("shared/navbar", { login: userId }) %>
     <div class="container">
       <button class="test_anime">test</button>
+      <div class="ror card">
+        <p class="title-text"><%= trace.name %></p>
+        <p class="content-text"><%= trace.description %></p>
+        <p class="content-text">Uploader: <%= trace.ownerEmail %></p>
+      </div>
       <div class="row" id="new_data_alert" style="display: none;">
         <div class="alert alert-success">
           <strong>Success!</strong> Metric Calculation completed. <a class="reload_button">Click here</a> to refresh page. 
         </div>
       </div>
-     <div class="row">
-       <h1><%= trace.name %></h1>
-       <div class="col-xs-12">
-         <div class="panel panel-default">
-           <div class="panel-body">
-             <span class="glyphicon glyphicon-cloud-upload"></span>
-             <div class="progress">
-               <div class="progress-bar" id="upload-bar" style="background-color: green;" role="progressbar">
+      <% if(userId.id == trace.ownerId){ %>
+         <div class="row">
+           <h1><%= trace.name %></h1>
+           <div class="col-xs-12">
+             <div class="panel panel-default">
+               <div class="panel-body">
+                 <span class="glyphicon glyphicon-cloud-upload"></span>
+                 <div class="progress">
+                   <div class="progress-bar" id="upload-bar" style="background-color: green;" role="progressbar">
+                   </div>
+                 </div>
                </div>
              </div>
            </div>
          </div>
-       </div>
-     </div>
-     <div class="row">
-       <form ref='uploadForm'
-         id='uploadForm'
-         encType="multipart/form-data">
-           <input type="file"  class="input-file" multiple="multiple" />
-           <button type="submit" class="upload-btn">Submit</button>
-       </form>
-    </div>
-    <div class="progress position-relative metric-progress-container">
-        <div class="progress-bar" role="progressbar" id="metric-bar" style="height: 50px; text-align: center;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
-        <small class="justify-content-center d-flex position-absolute w-100"></small>
-    </div>
+         <div class="row">
+           <form ref='uploadForm'
+             id='uploadForm'
+             encType="multipart/form-data">
+               <input type="file"  class="input-file" multiple="multiple" />
+               <button type="submit" class="upload-btn">Submit</button>
+           </form>
+        </div>
+        <div class="progress position-relative metric-progress-container">
+            <div class="progress-bar" role="progressbar" id="metric-bar" style="height: 50px; text-align: center;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
+            <small class="justify-content-center d-flex position-absolute w-100"></small>
+        </div>
+      <% } else{ %>
+      <% } %>
+
     <div class="row"><h2 id="loading"></h2></div>
       <div class="row" id="chart-container">
         <div class="col-xs-12">
@@ -71,6 +81,7 @@
       <div class="row"><h3 id="no-data-message"></h3></div>
     </div>
    </div>
+   <%- include("shared/footer") %>
    <script src="/js/chart.js"></script>
  </body>
 

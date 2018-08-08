@@ -46,7 +46,7 @@ $(document).ready(function() {
       formData.id = id;
 
       $.ajax({
-        url: '/trace/' + id,
+        url: '/traces/' + id,
         type: 'POST',
         data: formData,
         processData: false,

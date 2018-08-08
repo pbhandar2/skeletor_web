@@ -84,7 +84,7 @@ app.get('/traces', (req, res) => {
 			if (err) console.log(err)
 			else {
 				traces = data.Items;
-				res.render('list_traces', { 'traces': data.Items, 'userId': (req.session) ? req.session.key : null });
+				res.render('list_traces', { 'traces': (data.Items) ? data.Items : [], 'userId': (req.session) ? req.session.key : null });
 			}
 		});
 	} else {
@@ -99,7 +99,7 @@ app.get('/traces', (req, res) => {
 			if (err) console.log(err)
 			else {
 				traces = data.Items;
-				res.render('list_traces', { 'traces': data.Items, 'userId': (req.session) ? req.session.key : null });
+				res.render('list_traces', { 'traces': (data.Items) ? data.Items : [], 'userId': (req.session) ? req.session.key : null });
 			}
 		});
 	}
@@ -119,7 +119,7 @@ app.get('/traces/:traceId', (req, res) => {
 	});
 });
 
-app.post('/trace/:traceId', function(req, res){
+app.post('/traces/:traceId', function(req, res){
 
 	// create an incoming form object
 	var form = new formidable.IncomingForm();
@@ -187,6 +187,7 @@ app.post('/trace/:traceId', function(req, res){
 				
 				const file_name = file.name;
 				const file_size = file.size;
+				const original_file_location = `${data_location}/${file_name}`;
 
 				const num_blocks = Math.ceil(file_size/50000000) * 10;
 
@@ -214,7 +215,7 @@ app.post('/trace/:traceId', function(req, res){
 						}
 					}
 					if (count > 400000) {
-						uploadAndProcess(`${id}/${file_name}/parts/part${file_count}`, output_file_name, file_count);
+						uploadAndProcess(`${id}/${file_name}/parts/${file_count}`, output_file_name, file_count, original_file_location);
 						file_count++; // increase the file count so that the next file is created
 						outStream.end();
 						createNewWriteStream(id);
@@ -229,19 +230,19 @@ app.post('/trace/:traceId', function(req, res){
 				    outStream.end();
 				    console.log('Done');
 				    read_done = file_count + 1
-				    uploadAndProcess(`${id}/${file_name}/parts/${file_count}`, output_file_name, file_count);
+				    uploadAndProcess(`${id}/${file_name}/parts/${file_count}`, output_file_name, file_count, original_file_location);
 		          	// send message to client that the extraction has completed and the required number of blocks
 		          	//io.emit(`extract_${id}`, { 'file': file.name, 'num_blocks': file_count });
 		          	io.emit(id, "Read the entire file");
 				});
 
 				function createNewWriteStream(id) {
-					output_file_name = path.join(__dirname, `/uploads/${id}/part` + file_count);
+					output_file_name = path.join(__dirname, `/uploads/${id}/` + file_count);
 					outStream = fs.createWriteStream(output_file_name);
 					count = 0;
 				}
 
-				function uploadAndProcess(key, file_path, file_count) {
+				function uploadAndProcess(key, file_path, file_count, original_file_location) {
 					// console.log("processed");
 					// console.log(key);
 					// console.log(file_path);
@@ -253,7 +254,7 @@ app.post('/trace/:traceId', function(req, res){
 			        uploadParams.Body = fileStream;
 			        //console.log("going to upload this");
 			        s3.upload (uploadParams, function (err, data) {
-			        	//console.log("inside upload");
+			        	console.log("inside upload");
 						if (err) {
 							console.log("Error", err);
 						}
@@ -287,7 +288,19 @@ app.post('/trace/:traceId', function(req, res){
 									console.log(err, err.stack); 
 								} else {
 									io.emit(`lambda_${req.params.traceId}`);
+									// fs.unlink(file_path, function(err) {
+									// 	if (err) console.log(" error in deletion " + err);
+									// 	else console.log(` deleted ${file_path}`);
+									// });
+									//console.log(original_file_location);
 									num_files = num_files + 1;
+									//var fs = require('fs');
+									// console.log(file_path);
+									// if (fs.existsSync(file_path)) {
+									// 	console.log("IT EXISTS");
+									// 	console.log(file_path);
+									//     // Do something
+									// }
 									// io.emit(`lambda_${m.traceId}`);
 									// process.send({ msg: "lambda" });
 									// when all the lambda function has finished processing 
@@ -296,8 +309,8 @@ app.post('/trace/:traceId', function(req, res){
 									//console.log("num files is " + num_files);
 									//console.log("read_count is " + file_count);
 									if (read_done && num_files == read_done) {
-										console.log("read done is " + read_done);
-										console.log(num_files);
+										//console.log("read done is " + read_done);
+										//console.log(original_file_location);
 										
 							            const combine_json_payload = {
 							              "id": id,
@@ -315,6 +328,22 @@ app.post('/trace/:traceId', function(req, res){
 												let f = moment.utc(diff).format("HH:mm:ss.SSS");
 												console.log(f);
 							            		io.emit(`calculation_done_${req.params.traceId}`);
+
+							            		uploadParams = { Bucket: 'fstraces', Key: `${id}/file/${file_name}` , Body: ''};
+							            		fileStream = fs.createReadStream(original_file_location);
+		            					        fileStream.on('error', function(err) {
+										          console.log('File Error', err);
+										        });
+										        uploadParams.Body = fileStream;
+										        s3.upload (uploadParams, function (err, data) {
+										        	if (err) console.log(" cannot upload the main file " + err);
+										        	else {
+										        		console.log("MAIN FILE UPLOADED");
+			        						            fs.unlink(original_file_location, function(e) {
+											              if (e) console.log(e);
+											            });
+										        	}
+										        });
 							            	}
 							            });
 										// params = {

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="stylesheet" href="/css/main.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
+    <title>Public Traces</title>
+    <script src="js/test.js"></script>
+    <script type="text/javascript" src="/js/main.js"></script>
+  </head>
+
+  <body>
+    <%- include("shared/navbar", { login: userId }) %>
+    <div class="container">
+      <div class="row">
+        <form ref='addTraceForm'
+          id='addTraceForm'
+          action='/add'
+          method='post'>
+          <div class="form-group">
+            <label for="Trace Set Name">Name</label>
+            <input type="text" class="form-control" name="name" placeholder="Trace Set Name">
+          </div>
+          <div class="form-group">
+            <label for="Short Description">Description</label>
+            <textarea rows="4" class="form-control" name="description"></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-check-label" for="Public/Private Type">Private?</label>
+            <input type="checkbox" class="form-check-input" name="trace_display">
+          </div>
+          <button type="submit" class="btn btn-success btn-lg">Create Trace</button>
+        </form>
+      </div>
+      <div class="row">
+        <h2>Trace List</h2>
+        <% for(let i = 0; i < traces.length; i++) { %>
+          <article>
+            <h5><a href='traces/<%= traces[i].id %>'><%= traces[i].name %></a></h5>
+          </article>
+        <% } %>
+      </div>
+    </div>
+    <%- include("shared/footer") %>
+  </body>
+
+</html>

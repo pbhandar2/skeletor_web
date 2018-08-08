@@ -17,6 +17,17 @@
   },
   "homepage": "https://github.com/pbhandar2/skeletor_web#readme",
   "dependencies": {
-    "express": "^4.16.3"
+    "aws-sdk": "^2.288.0",
+    "bcrypt-nodejs": "0.0.3",
+    "body-parser": "^1.18.3",
+    "connect-flash": "^0.1.1",
+    "connect-redis": "^3.3.3",
+    "ejs": "^2.6.1",
+    "express": "^4.16.3",
+    "express-session": "^1.15.6",
+    "passport": "^0.4.0",
+    "passport-local": "^1.0.0",
+    "redis": "^2.8.0",
+    "uuid": "^3.3.2"
   }
 }

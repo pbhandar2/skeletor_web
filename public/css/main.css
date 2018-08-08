@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css?family=Chivo|Overpass');
+
+footer {
+	margin-top: 50px;
+	border: 1px solid black;
+	padding: 20px;
+	background: #96858f
+}
+
+.card {
+	border: 2px solid #6d7993;
+	padding: 10px;
+}
+
+.main-text {
+	font-family: 'Chivo', sans-serif;
+	font-size: 1.3em;
+}
+
+.content-text {
+	font-family: 'Overpass', sans-serif;
+	font-size: 1.1em;
+}
+
+.footer-copyright {
+	font-weight: bold;
+}
+
+.website-name-text {
+	font-weight: bold;
+}
+
+.homepage-content {
+	font-family: 'Overpass', sans-serif;
+	font-size: 1.3em;
+}
+
+nav {
+	background: #d5d5d5;
+}
+
+/* to make sure a tags show clickable pointer */
+a,
+a label {
+    cursor: pointer;
+}

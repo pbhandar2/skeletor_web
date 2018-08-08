@@ -1,0 +1,27 @@
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 2px;
+}
+.zoom {
+  cursor: move;
+  fill: none;
+  pointer-events: all;
+}
+
+.axis {
+  font-size: 10px;
+}
+
+.brush {
+  background-color: red;
+  background: red;
+}
+
+#chart-container {
+  border: 1px solid black;
+}
+
+#chart-main {
+  margin-left: 10px;
+}

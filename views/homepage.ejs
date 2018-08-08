@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="/js/main.js"></script>
+    <title>Skeletor</title>
+  </head>
+
+  <body>
+    <%- include("shared/navbar", { login: userId }) %>
+    <div class="container">
+      <div class="row landing-message-container card">
+        <div class="landing-message-item">
+          <div class="landing-message-text">
+            <p class="homepage-content">
+              Welcome to skeletor. <br /><br />
+
+              This website is an online repository of traces and a metric-extractor tool.
+              Traces can be uploaded and metrics can be obtained for the trace sets which
+              can also be visualized publicly or privately. <br /><br />
+
+              To view the list of publicly available traces and their respective metrics, go
+              <a href="/traces"> here</a>. <br /><br />
+
+              To view the list of metrics that the tool can extract, go <a href="/metrics"> here</a>. <br /><br />
+
+              To upload a trace, go <a href="/traces"> here</a>. Once you create a trace providing the name and description
+              for it, the website you redirect you to the trace page. There you will have the option to upload files. Once
+              a file is uploaded, metric calculation will begin or it will get queued depending on the utilization of the available
+              resources. The page will automatically get updated with the latest metrics once the metric calculation is complete.<br /><br />
+
+              To see the list of traces that you have uploaded public and private, go <a href="/profile"> here</a> if you've signed
+              up.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <%- include("shared/footer") %>
+  </body>
+
+</html>

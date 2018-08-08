@@ -1,0 +1,22 @@
+<nav class="navbar navbar-default" style="background: #d5d5d5;">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand main-text website-name-text">Skeletor</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li class="main-text" id="home_li"><a href="/">Home</a></li>
+      <li class="main-text" id="traces_li"><a href="/traces">Traces</a></li>
+      <li class="main-text" id="metrics_li"><a href="/metrics">Metrics</a></li>
+      <li class="main-text" id="contact_li"><a href="/contact">Contact</a></li>
+    </ul>
+    <ul class="nav navbar-nav navbar-right">
+      <% if(login){ %>
+        <li class="main-text" id="profile_li"><a href="/profile">Profile</a></li>
+        <li class="main-text"><a href="/logout">Logout</a></li>
+      <% } else{ %>
+        <li class="main-text" id="login_li"><a href="/login">Login</a></li>
+        <li class="main-text" id="signup_li"><a href="/signup">Signup</a></li>
+      <% } %>
+    </ul>
+  </div>
+</nav>

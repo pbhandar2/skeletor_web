@@ -288,7 +288,7 @@ app.post('/trace/:traceId', function(req, res){
 									// call a socket to tell the page that new data is 
 									// avaialble 
 									console.log("num files is " + num_files);
-									console.log("read_count is " + read_count);
+									console.log("read_count is " + file_count);
 									if (read_done && num_files == file_count) {
 										let end = moment();
 										let diff = end.diff(start);

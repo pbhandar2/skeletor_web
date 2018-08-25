@@ -49,9 +49,10 @@ app.use(session({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-var http_server = http.createServer(app).listen(80);
+var http_server = http.Server(app);
 // var https_server = https.createServer(app).listen(443);
 var io = require('socket.io').listen(http_server);
+http_server.listen(80);
 const redisAdapter = require('socket.io-redis');
 io.adapter(redisAdapter({ host: 'localhost', port: 6379 }));
 
@@ -114,8 +115,11 @@ app.get('/traces/:traceId', (req, res) => {
 		TableName: "traces"
 	}
 	ddb.query(params, function(err, data) {
-		if (err) console.log(err)
-		else res.render('trace_page', { 'trace': data.Items[0], 'userId': (req.session) ? req.session.key : null  })
+		if (err) res.render('error', { 'userId': (req.session) ? req.session.key : null, 'errorMessage': 'Error connecting to the database.' })
+		else {
+			if (data.Items[0]) res.render('trace_page', { 'trace': data.Items[0], 'userId': (req.session) ? req.session.key : null  })
+			else res.render('error', { 'userId': (req.session) ? req.session.key : null, 'errorMessage': 'The trace does not exist in the database.' })
+		}
 	});
 });
 
@@ -189,7 +193,11 @@ app.post('/traces/:traceId', function(req, res){
 				const file_size = file.size;
 				const original_file_location = `${data_location}/${file_name}`;
 
+				console.log(file_size);
+
 				const num_blocks = Math.ceil(file_size/50000000) * 10;
+
+				console.log(num_blocks);
 
 				io.emit(`extract_${req.params.traceId}`, { 'file': file.name, 'num_blocks': num_blocks });
 
@@ -582,4 +590,61 @@ app.post('/contact', (req, res) => {
 	});
 
 });
+
+
+app.post('/deletetrace/:traceId', (req, res) => {
+
+	const traceId = req.params.traceId;
+	const params = {
+		Key: {
+			"id": traceId
+		},
+		ConditionExpression: "attribute_exists(id)",
+		TableName: "traces"
+	}
+	ddb.delete(params, function(err, data) {
+		if (err) res.send(err);
+		else res.send("done");
+	});
+
+	const userId = req.params.key.id;
+
+	console.log(id);
+
+	
+
+});
+
+app.post('/toggledisplay/:traceId/:toggleValue', (req, res) => {
+
+	// getting the params
+	const toggleValue = req.params.toggleValue;
+	const traceId = req.params.traceId;
+
+	const params = {
+		Key: {
+			"id": traceId
+		},
+		ExpressionAttributeValues: {
+			":toggleValue": toggleValue
+		},
+        UpdateExpression: "set display = :toggleValue",
+        ConditionExpression: "attribute_exists(id)",
+		TableName: "traces"
+	}
+
+
+	ddb.update(params, function(err, data) {
+		console.log(err);
+		console.log(data);
+		if (err) res.send(err)
+		else res.send("done")
+	});
+
+});
+
+// app.get("/nodata", (req, res) => {
+// 	res.render
+// });
+
 

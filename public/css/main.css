@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css?family=Chivo|Overpass');
 
+.float-right {
+	float: right;
+}
+
 footer {
 	margin-top: 50px;
 	padding: 20px;

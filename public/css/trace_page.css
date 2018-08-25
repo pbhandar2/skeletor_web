@@ -9,4 +9,24 @@
 	margin-top: 8px;
 }
 
+.button-container {
+	margin-top: 5px;
+}
+
+#deleteTrace {
+	float: right;
+}
+
+#tooglePublic {
+	float: right;
+}
+
+#tooglePrivate {
+	float: right;
+}
+
+.float-right {
+	float: right;
+}
+
 

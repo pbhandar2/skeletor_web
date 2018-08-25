@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <title>Skeletor</title>
+    <script type="text/javascript" src="/js/main.js"></script>
+  </head>
+
+  <body>
+    <%- include("shared/navbar", { login: userId }) %>
+    <div class="container">
+      <div class="row card">
+        <div class="alert alert-danger" role="alert">
+          <h1 class="title-text"><%= errorMessage %></h1>
+        </div>
+      </div>
+    </div>
+    <%- include("shared/footer") %>
+  </body>
+
+</html>

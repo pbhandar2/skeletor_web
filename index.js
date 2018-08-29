@@ -51,9 +51,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 var http_server = http.Server(app);
-var https_server = https.createServer(app).listen(443);
+var https_server = https.createServer(app);
 var io = require('socket.io').listen(http_server);
 http_server.listen(80);
+https_server.listen(443);
 const redisAdapter = require('socket.io-redis');
 io.adapter(redisAdapter({ host: 'localhost', port: 6379 }));
 
@@ -533,32 +534,40 @@ app.post('/add', (req, res) => {
 
 app.get('/profile', (req, res) => {
 	if (req.session && req.session.key) {
-		// const params = {
-		// 	ExpressionAttributeValues: {
-		// 		":email": req.session.key.email
-		// 	},
-		// 	KeyConditionExpression: "email = :email",
-		// 	TableName: "users"
-		// }
-		// ddb.query(params, function(err, data) {
-		// 	if (err) console.log(err)
-		// 	else res.render('profile', { 'user': data.Items[0], 'userId': req.session.key })
-		// });
 
-		if (req.session.key.accessCode == "ibm_emory") {
-			const queue_params = {
-				TableName: "queue"
-			}
-			ddb.scan(queue_params, function(err, data) {
-				if (err) console.log(err)
-				else {
-					queue = data.Items;
-					res.render('profile', { 'queue': data.Items, 'user': req.session.key, 'userId': req.session.key });
-				}
-			});
-		} else {
-			res.render('profile', { 'queue': [], 'user': req.session.key, 'userId': req.session.key });
+		var user_object = {}
+		const params = {
+			ExpressionAttributeValues: {
+				":email": req.session.key.email
+			},
+			KeyConditionExpression: "email = :email",
+			TableName: "users"
 		}
+
+		console.log('in profile')
+
+		ddb.query(params, function(err, data) {
+			if (err) console.log(err)
+			else {
+				console.log("in here ")
+				res.render('profile', { 'queue': [], 'user': data.Items[0], 'userId': req.session.key });
+			}
+		});
+
+		// if (req.session.key.accessCode == "ibm_emory") {
+		// 	// const queue_params = {
+		// 	// 	TableName: "queue"
+		// 	// }
+		// 	// ddb.scan(queue_params, function(err, data) {
+		// 	// 	if (err) console.log(err)
+		// 	// 	else {
+		// 	// 		queue = data.Items;
+		// 	// 		res.render('profile', { 'queue': data.Items, 'user': req.session.key, 'userId': req.session.key });
+		// 	// 	}
+		// 	// });
+		// } else {
+		// 	res.render('profile', { 'queue': [], 'user': req.session.key, 'userId': req.session.key });
+		// }
 	}
 	else res.render('login', { message: '', 'userId': req.session.key });
 });
@@ -618,12 +627,41 @@ app.post('/deletetrace/:traceId', (req, res) => {
 		else res.send("done");
 	});
 
-	console.log(req.session.key);
-	var index = 0;
-	req.session.key.traces.forEach(function(trace) {
-		if (trace.id == traceId)
-			return
-		index = index + 1
+	var user_object = {}
+	var user_params = {
+		ExpressionAttributeValues: {
+			":email": req.session.key.email
+		},
+		KeyConditionExpression: "email = :email",
+		TableName: "users"
+	}
+
+	ddb.query(user_params, function(err, data) {
+		if (err) console.log(err)
+		else {
+			user_object = data.Items[0];
+			var index = 0;
+			user_object.traces.forEach(function(trace) {
+				if (trace.id == traceId) {
+					const delete_expression = "REMOVE traces[" + index + "]"
+					user_params = {
+						Key: {
+							"email": req.session.key.email,
+							"id": req.session.key.id,
+						},
+						UpdateExpression: delete_expression,
+						TableName: "users"
+					}
+					ddb.update(user_params, function(err, data) {
+						if (err) console.log(err)
+						else {
+							console.log("sucessfull!")
+						}
+					});
+				}
+				index = index + 1
+			});
+		}
 	});
 
 

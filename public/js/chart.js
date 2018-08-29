@@ -294,7 +294,7 @@ socket.on(extract_socket_name, function (data) {
 	lambda_needed = lambda_needed + data.num_blocks;
     const width = (lambda_completed/(lambda_needed + 1)) * 100;
     $('#metric-bar').css('width', width + "%");
-    $('#metric-status').text("Metric Calculation in Progress.")
+    //$('#metric-status').text("Metric Calculation in Progress.")
 });
 
 const lambda_done_socket_name = `lambda_${id}`;
@@ -303,6 +303,7 @@ socket.on(lambda_done_socket_name, function () {
 	lambda_completed = lambda_completed + 1;
     const width = (lambda_completed/(lambda_needed + 1)) * 100;
     $('#metric-bar').css('width', width + "%");
+    $('#metric-status').text("Extracted.")
 });
 
 const calculation_done_socket_name = `calculation_done_${id}`;
@@ -311,7 +312,8 @@ socket.on(calculation_done_socket_name, function () {
     $('#metric-bar').css('width', 100 + "%");
     $('#new_data_alert').show();
     $('html, body').animate({ scrollTop: $('#new_data_alert').offset().top }, 'slow');
-    $('#metric-status').text("Metric Calculation Complete!")
+    $('#metric-status').text("Analyzed.")
+    document.getElementById("file-upload-btn").disabled = false;
 });
 
 socket.on(id, function (data) {

@@ -39,9 +39,10 @@ app.use(express.static(__dirname + '/public'));
 app.use(session({
     secret: 'ssshhhhh',
     // create new redis store.
-    store: new redisStore({ host: 'localhost', port: 6379, client: client,ttl :  260}),
-    saveUninitialized: false,
-    resave: false
+    store: new redisStore({ host: 'localhost', port: 6379, client: client, ttl: 260}),
+    saveUninitialized: true,
+    resave: true,
+    cookie: {expires: new Date(253402300000000)}
 }));
 
 
@@ -147,6 +148,33 @@ app.post('/traces/:traceId', function(req, res){
 			if (error) console.log("An error occured while renaming and moving the file." + error);
 			else {
 
+
+
+			    console.log(req.params.traceId);
+
+
+				const zlib = require('zlib');
+				const id = req.params.traceId;
+				var file_count = 0; // the count for the file name
+				var count = 0; // counting the number of lines for the current file 
+				var output_file_name; // the output file name that changes everytime
+				var outStream; // the outstream that will change when the line limit is hit 
+				createNewWriteStream(id); // create the initial write stream 
+				const data_location = form.uploadDir;
+				var start_date_string = "0";
+				var num_files = 0;
+				var read_done = 0;
+				
+				const file_name = file.name;
+				const file_size = file.size;
+				const original_file_location = `${data_location}/${file_name}`;
+
+				console.log(file_size);
+
+				const num_blocks = Math.ceil(file_size/50000000) * 10;
+
+				console.log(num_blocks);
+
 			    // updating the file information to the queue in the database 
 			    const ddb_res = ddb.update({
 			      TableName: "traces",
@@ -162,7 +190,7 @@ app.post('/traces/:traceId', function(req, res){
 			          'name': file.name,
 			          'size': file.size,
 			          'done': 0,
-			          'need': 1000000000000,
+			          'need': num_blocks,
 			        }
 			      }
 			      }, function(data, err) {
@@ -173,31 +201,6 @@ app.post('/traces/:traceId', function(req, res){
 			          console.log("done");
 			        }
 			    });
-
-			    console.log(req.params.traceId);
-
-
-				const zlib = require('zlib');
-				const id = req.params.traceId;
-				var file_count = 0; // the count for the file name
-				var count = 0; // counting the number of lines for the current file 
-				var output_file_name; // the output file name that changes everytime
-				var outStream; // the outstream that will change when the line limit is hit 
-				createNewWriteStream(id); // create the initial write stream 
-				const data_location = form.uploadDir;
-				var start_date_string;
-				var num_files = 0;
-				var read_done = 0;
-				
-				const file_name = file.name;
-				const file_size = file.size;
-				const original_file_location = `${data_location}/${file_name}`;
-
-				console.log(file_size);
-
-				const num_blocks = Math.ceil(file_size/50000000) * 10;
-
-				console.log(num_blocks);
 
 				io.emit(`extract_${req.params.traceId}`, { 'file': file.name, 'num_blocks': num_blocks });
 
@@ -213,8 +216,10 @@ app.post('/traces/:traceId', function(req, res){
 				// each line is placed on its proper part file 
 				lineReader.on('line', function(line) {
 					count++;
+					//console.log("this is the start date string here")
+					//console.log(start_date_string);
 					outStream.write(line + '\n');
-					if (!start_date_string) {
+					if (start_date_string == "0") {
 						if (line.includes("begins:")) {
 				          var date_string = line.split("begins:")[1];
 				          const date_obj = moment(date_string, " ddd MMM  D HH:mm:ss YYYY");
@@ -236,7 +241,7 @@ app.post('/traces/:traceId', function(req, res){
 				    }
 				    gzip_read_stream.close();
 				    outStream.end();
-				    console.log('Done');
+				    //console.log('Done');
 				    read_done = file_count + 1
 				    uploadAndProcess(`${id}/${file_name}/parts/${file_count}`, output_file_name, file_count, original_file_location);
 		          	// send message to client that the extraction has completed and the required number of blocks
@@ -260,14 +265,14 @@ app.post('/traces/:traceId', function(req, res){
 			          console.log('File Error', err);
 			        });
 			        uploadParams.Body = fileStream;
-			        //console.log("going to upload this");
+			        console.log("going to upload this");
 			        s3.upload (uploadParams, function (err, data) {
 			        	console.log("inside upload");
 						if (err) {
 							console.log("Error", err);
 						}
 						else {
-				            //console.log("Upload Success", data.Location);
+				            console.log("Upload Success", data.Location);
 
 				            fs.unlink(file_path, function(e) {
 				              if (e) console.log(e);
@@ -282,8 +287,11 @@ app.post('/traces/:traceId', function(req, res){
 				              "part": `${file_count}`,
 				              "start_date": start_date_string,
 				              "size": file_size,
-				              "lambda_needed": file_count
+				              "test": "test",
+				              "date": start_date_string
 				            };
+
+				            //console.log("this is my payload" + JSON.stringify(payload))
 
 				            var lambda_params = {
 				             FunctionName: "arn:aws:lambda:us-east-2:722606526443:function:process_gpfs_trace",
@@ -296,6 +304,7 @@ app.post('/traces/:traceId', function(req, res){
 									console.log(err, err.stack); 
 								} else {
 									io.emit(`lambda_${req.params.traceId}`);
+									console.log('lambda done')
 									// fs.unlink(file_path, function(err) {
 									// 	if (err) console.log(" error in deletion " + err);
 									// 	else console.log(` deleted ${file_path}`);
@@ -322,7 +331,8 @@ app.post('/traces/:traceId', function(req, res){
 										
 							            const combine_json_payload = {
 							              "id": id,
-							              "file": file_name
+							              "file": file_name,
+							              "size": file_size
 							            };
 							            lambda_params = {
 							             FunctionName: "arn:aws:lambda:us-east-2:722606526443:function:combine_json",
@@ -452,7 +462,8 @@ app.post('/add', (req, res) => {
     	files: [],
     	type: "IBM GPFS",
     	ownerId: req.session.key.id,
-    	ownerEmail: req.session.key.email
+    	ownerEmail: req.session.key.email,
+    	uploadedOn: new Date().toString()
 	}
 
 	var params = {

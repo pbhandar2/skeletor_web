@@ -73,6 +73,9 @@ $(document).ready(function() {
 
   $('#uploadForm').on('submit', function (e){
     e.preventDefault();
+    //alert(" File submitted for upload! Please do not close the window during upload. ");
+    $('#metric-status').text("Uploading")
+    document.getElementById("file-upload-btn").disabled = true;
     let start = moment();
     const current_url = window.location.href;
     const id = current_url.split("/").pop();
@@ -129,6 +132,7 @@ $(document).ready(function() {
               // once the upload reaches 100%, set the progress bar text to done
               if (percentComplete === 100) {
                 $('#upload-bar').html('Done');
+                $('#metric-status').text("Uploaded")
                 document.getElementById("uploadForm").reset();
               }
 
@@ -150,6 +154,7 @@ $(document).ready(function() {
   });
   $('.test_anime').on('click', function(e){
     $('#new_data_alert').show();
+
     $('html, body').animate({ scrollTop: $('#new_data_alert').offset().top });
   });
   // $('.test-metric').on('click', function(e){

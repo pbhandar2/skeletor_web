@@ -6,6 +6,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/tooltip.css">
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
     <title>Public Traces</title>
@@ -16,47 +17,92 @@
   <body>
     <%- include("shared/navbar", { login: userId }) %>
     <div class="container">
-      <div class="row card">
-        <p class="title-text">Create a Trace Set</p>
-        <form ref='addTraceForm'
-          id='addTraceForm'
-          action='/add'
-          method='post'>
-          <div class="form-group">
-            <label for="Trace Set Name content-text">Name</label>
-            <input type="text" class="form-control" name="name" placeholder="Trace Set Name">
-          </div>
-          <div class="form-group">
-            <label for="Short Description content-text">Description</label>
-            <textarea rows="4" class="form-control" name="description"></textarea>
-          </div>
-          <div class="form-group">
-            <label class="form-check-label content-text" for="Public/Private Type">Private?</label>
-            <input type="checkbox" class="form-check-input" name="trace_display">
-          </div>
-          <button type="submit" class="btn btn-success btn-lg"><span class="content-text">Create Trace</span></button>
-        </form>
-      </div>
-
+      <% if(userId){ %>
+        <div class="row card">
+          <p class="title-text">Create a Trace Set</p>
+          <form ref='addTraceForm'
+            id='addTraceForm'
+            action='/add'
+            method='post'>
+            <div class="form-group">
+              <label for="Trace Set Name content-text">Name</label>
+              <input type="text" class="form-control" name="name" placeholder="Trace Set Name">
+            </div>
+            <div class="form-group">
+              <label for="Short Description content-text">Description</label>
+              <textarea rows="4" class="form-control" name="description"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-check-label content-text" for="Public/Private Type">Private?</label>
+              <input type="checkbox" class="form-check-input" name="trace_display">
+            </div>
+            <button type="submit" class="btn btn-success btn-lg"><span class="content-text">Create Trace</span></button>
+          </form>
+        </div>
+      <% } else{ %>
+        <div class="row card">
+          <p class="title-text">Please <a href="/login">Login</a> to be able to create a trace set.</p>
+        </div>
+      <% } %>
       <div class="row card">
         <p class="title-text">Public Traces</p>
         <table class="table">
           <thead>
             <tr>
-              <th scope="col">Name</th>
-              <th scope="col">Type</th>
+              <th scope="col" title="Name of the trace set.">Name  <span>?</span></th>
+              <th scope="col" title="The type of trace files. A type of a trace file confirms to a certain format hence is parsed accordingly.">Type  <span>?</span></th>
+              <th scope="col" title="Email of the creater of the trace set.">Uploader  <span>?</span></th>
+              <th scope="col" title="The number of files the trace set contains.">Number of files  <span>?</span></th>
+              <th scope="col" title="The date when the trace set was created.">Upload Date  <span>?</span></th>
             </tr>
           </thead>
           <tbody>
             <%  for(let i = 0; i < traces.length; i++) { %>
-              <tr>
-                <td><a  class="content-text" href='traces/<%= traces[i].id %>'><%= traces[i].name %></a></td>
-                <td><p  class="content-text"><%= traces[i].type %></p></td>
-              </tr>
+              <% if(traces[i].display){ %>
+              <% } else{ %>
+                <tr>
+                  <td><a  class="content-text" href='traces/<%= traces[i].id %>'><%= traces[i].name %></a></td>
+                  <td><p  class="content-text"><%= traces[i].type %></p></td>
+                  <td><p  class="content-text"><%= traces[i].ownerEmail %></p></td>
+                  <td><p  class="content-text"><%= traces[i].files.length %></p></td>
+                  <td><p  class="content-text"><%= traces[i].uploadedOn %></p></td>
+                </tr>
+              <% } %>
             <% } %>
           </tbody>
         </table>
       </div>
+
+      <% if (userId && userId.accessCode == "ibm_emory"){ %>
+        <div class="row card">
+          <p class="title-text">Private Traces</p>
+          <table class="table">
+            <thead>
+               <tr>
+                <th scope="col" title="Name of the trace set.">Name  <span>?</span></th>
+                <th scope="col" title="The type of trace files. A type of a trace file confirms to a certain format hence is parsed accordingly.">Type  <span>?</span></th>
+                <th scope="col" title="Email of the creater of the trace set.">Uploader  <span>?</span></th>
+                <th scope="col" title="The number of files the trace set contains.">Number of files  <span>?</span></th>
+                <th scope="col" title="The date when the trace set was created.">Upload Date  <span>?</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <%  for(let i = 0; i < traces.length; i++) { %>
+                <% if(traces[i].display){ %>
+                  <tr>
+                    <td><a  class="content-text" href='traces/<%= traces[i].id %>'><%= traces[i].name %></a></td>
+                    <td><p  class="content-text"><%= traces[i].type %></p></td>
+                    <td><p  class="content-text"><%= traces[i].ownerEmail %></p></td>
+                    <td><p  class="content-text"><%= traces[i].files.length %></p></td>
+                    <td><p  class="content-text"><%= traces[i].uploadedOn %></p></td>
+                  </tr>
+                <% } else{ %>
+                <% } %>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
     </div>
     <%- include("shared/footer") %>
   </body>

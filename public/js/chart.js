@@ -288,7 +288,10 @@ function zoomed() {
 // 	upgrade: false
 // });
 
-var socket = io({
+var getUrl = window.location;
+var baseUrl = getUrl .protocol + "//" + getUrl.host + "/";
+console.log(baseUrl)
+var socket = io(baseUrl, {
 	transports: ['websocket']
 });
 

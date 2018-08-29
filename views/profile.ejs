@@ -24,13 +24,21 @@
         <table class="table">
           <thead>
             <tr>
-              <th scope="col">Name</th>
+              <th scope="col" title="Name of the trace set.">Name  <span>?</span></th>
+              <th scope="col" title="The type of trace files. A type of a trace file confirms to a certain format hence is parsed accordingly.">Type  <span>?</span></th>
+              <th scope="col" title="Email of the creater of the trace set.">Uploader  <span>?</span></th>
+              <th scope="col" title="The number of files the trace set contains.">Number of files  <span>?</span></th>
+              <th scope="col" title="The date when the trace set was created.">Upload Date  <span>?</span></th>
             </tr>
           </thead>
           <tbody>
             <%  user.traces.forEach(function(trace) { %>
               <tr>
-                <td><a href="traces/<%= trace.id %>"><%= trace.name %></a></td>
+                    <td><a  class="content-text" href='traces/<%= trace.id %>'><%= trace.name %></a></td>
+                    <td><p  class="content-text"><%= trace.type %></p></td>
+                    <td><p  class="content-text"><%= trace.ownerEmail %></p></td>
+                    <td><p  class="content-text"><%= trace.files.length %></p></td>
+                    <td><p  class="content-text"><%= trace.uploadedOn %></p></td>
               </tr>
             <% }) %>
           </tbody>

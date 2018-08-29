@@ -283,9 +283,13 @@ function zoomed() {
 //     $('html, body').animate({ scrollTop: $('#new_data_alert').offset().top }, 'slow');
 // });
 
-var socket = io(`localhost`, {
-	transports: [ 'websocket' ],
-	upgrade: false
+// var socket = io(`localhost`, {
+// 	transports: [ 'websocket' ],
+// 	upgrade: false
+// });
+
+var socket = io({
+	transports: ['websocket']
 });
 
 const extract_socket_name = `extract_${id}`;

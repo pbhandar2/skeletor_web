@@ -39,7 +39,7 @@ app.use(express.static(__dirname + '/public'));
 app.use(session({
     secret: 'ssshhhhh',
     // create new redis store.
-    store: new redisStore({ host: 'localhost', port: 6379, client: client, ttl: 260}),
+    store: new redisStore({ host: 'localhost', port: 6379, client: client, ttl: 60000 }),
     saveUninitialized: true,
     resave: true,
     cookie: {expires: new Date(253402300000000)}

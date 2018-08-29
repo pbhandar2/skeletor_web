@@ -51,7 +51,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 var http_server = http.Server(app);
-// var https_server = https.createServer(app).listen(443);
+var https_server = https.createServer(app).listen(443);
 var io = require('socket.io').listen(http_server);
 http_server.listen(80);
 const redisAdapter = require('socket.io-redis');
@@ -618,11 +618,15 @@ app.post('/deletetrace/:traceId', (req, res) => {
 		else res.send("done");
 	});
 
-	const userId = req.params.key.id;
+	console.log(req.session.key);
+	var index = 0;
+	req.session.key.traces.forEach(function(trace) {
+		if (trace.id == traceId)
+			return
+		index = index + 1
+	});
 
-	console.log(id);
 
-	
 
 });
 

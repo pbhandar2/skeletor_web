@@ -550,24 +550,26 @@ app.get('/profile', (req, res) => {
 			if (err) console.log(err)
 			else {
 				console.log("in here ")
-				res.render('profile', { 'queue': [], 'user': data.Items[0], 'userId': req.session.key });
+				user_object = data.Items[0]
+				if (req.session.key.accessCode == "ibm_emory") {
+					const queue_params = {
+						TableName: "queue"
+					}
+					ddb.scan(queue_params, function(err, data) {
+						if (err) console.log(err)
+						else {
+							queue = data.Items;
+							res.render('profile', { 'queue': data.Items, 'user': user_object, 'userId': req.session.key });
+						}
+					});
+				} else {
+					res.render('profile', { 'queue': [], 'user': user_object, 'userId': req.session.key });
+				}
+				//res.render('profile', { 'queue': [], 'user': data.Items[0], 'userId': req.session.key });
 			}
 		});
 
-		// if (req.session.key.accessCode == "ibm_emory") {
-		// 	// const queue_params = {
-		// 	// 	TableName: "queue"
-		// 	// }
-		// 	// ddb.scan(queue_params, function(err, data) {
-		// 	// 	if (err) console.log(err)
-		// 	// 	else {
-		// 	// 		queue = data.Items;
-		// 	// 		res.render('profile', { 'queue': data.Items, 'user': req.session.key, 'userId': req.session.key });
-		// 	// 	}
-		// 	// });
-		// } else {
-		// 	res.render('profile', { 'queue': [], 'user': req.session.key, 'userId': req.session.key });
-		// }
+
 	}
 	else res.render('login', { message: '', 'userId': req.session.key });
 });

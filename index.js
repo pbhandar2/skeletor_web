@@ -1,3 +1,6 @@
+var path = require('path');
+global.appRoot = path.resolve(__dirname);
+
 const http = require('http');
 const https = require('https');
 
@@ -119,7 +122,7 @@ app.get('/traces/:traceId', (req, res) => {
 	ddb.query(params, function(err, data) {
 		if (err) res.render('error', { 'userId': (req.session) ? req.session.key : null, 'errorMessage': 'Error connecting to the database.' })
 		else {
-			if (data.Items[0]) res.render('trace_page', { 'trace': data.Items[0], 'userId': (req.session) ? req.session.key : null  })
+			if (data.Items[0]) res.render('trace_metrics', { 'trace': data.Items[0], 'userId': (req.session) ? req.session.key : null  })
 			else res.render('error', { 'userId': (req.session) ? req.session.key : null, 'errorMessage': 'The trace does not exist in the database.' })
 		}
 	});
@@ -149,10 +152,9 @@ app.post('/traces/:traceId', function(req, res){
 			if (error) console.log("An error occured while renaming and moving the file." + error);
 			else {
 
-
+				console.log(file);
 
 			    console.log(req.params.traceId);
-
 
 				const zlib = require('zlib');
 				const id = req.params.traceId;
@@ -226,7 +228,13 @@ app.post('/traces/:traceId', function(req, res){
 				          const date_obj = moment(date_string, " ddd MMM  D HH:mm:ss YYYY");
 				          start_date_string = date_obj.format("YYYY-MM-DD-HH-mm-ss");
 				          console.log("The trace begins on " + start_date_string);
+						} else if (line.includes("all streams included")) { // for format T2
+							const split_line = line.split(" ").filter(String);
+							const date_string = split_line.slice(3, 8).join(" ");
+							const date_obj = moment(date_string, "ddd MMM D HH:mm:ss.SSS YYYY");
+							const start_date_string = date_obj.format("YYYY-MM-DD-HH-mm-ss");
 						}
+						console.log("The trace begins on " + start_date_string);
 					}
 					if (count > 400000) {
 						uploadAndProcess(`${id}/${file_name}/parts/${file_count}`, output_file_name, file_count, original_file_location);
@@ -467,67 +475,13 @@ app.post('/add', (req, res) => {
     	uploadedOn: new Date().toString()
 	}
 
-	var params = {
-		Item: item_object,
-		TableName: "traces"
-	}
+	const item_uploads_path = "./uploads/" + item_object.id;
+	fs.mkdirSync(item_uploads_path);
 
-	ddb.put(params, function(err, data) {
-		if (err) console.log(err)
-		else {
-
-			// create directories that we need to process files for this trace set
-
-			const item_uploads_path = "./uploads/" + item_object.id;
-			// const item_tmp_path = "./tmp/" + item_object.id;
-			// const item_metrics_path = "./metrics/" + item_object.id;
-			fs.mkdirSync(item_uploads_path);
-			// fs.mkdirSync(item_tmp_path);
-			// fs.mkdirSync(item_metrics_path);
-
-			const query_params = {
-				ExpressionAttributeValues: {
-					":id": item_object.id
-				},
-				KeyConditionExpression: "id = :id",
-				TableName: "traces"
-			}
-
-			console.log("The email is " + req.session.key.email);
-
-			// udpating the user obejct 
-			const update_user_params = {
-				Key: {
-					id: req.session.key.id,
-					email: req.session.key.email
-				},
-				ExpressionAttributeValues: {
-					":traceId": [item_object],
-				},
-		        ExpressionAttributeNames: {
-		            '#t': 'traces'
-		        },
-		        UpdateExpression: "set #t = list_append(#t, :traceId)",
-				TableName: "users"
-			}
-
-			ddb.update(update_user_params, function(err, data) {
-				if (err) console.log(err)
-				else console.log(data)
-			});
-
-			// find the link and redirect to it 
-			ddb.query(query_params, function(err, data) {
-				if (err) {
-					throw(err);
-				}
-				else {
-					const link = "/traces/" + item_object.id;
-					res.redirect(link);
-				}
-			});
-
-		}
+	const create_trace_promise = require("./library/aws").create_trace(item_object);
+	create_trace_promise.then((flag) => {
+		const link = `/traces/${item_object.id}`;
+		res.redirect(link);
 	});
 
 });
@@ -698,8 +652,12 @@ app.post('/toggledisplay/:traceId/:toggleValue', (req, res) => {
 
 });
 
-// app.get("/nodata", (req, res) => {
-// 	res.render
-// });
+
+const traceProcessor = require("./library/traceProcessor");
+
+
+
+
+
 
 

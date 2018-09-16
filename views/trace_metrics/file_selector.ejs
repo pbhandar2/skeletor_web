@@ -1,0 +1,26 @@
+<% if(trace.files.length){ %>
+	<div class="row card">
+		<div class="col-xs-12">
+			<div class="row">
+				<p class="title-text" for="sel1">Select File</p>
+			</div>
+			<div class="form-group row">
+				<div class="col-xs-10">
+					<select class="form-control" id="file-selector">
+						<option  class="content-text" id="file-none" value="none" disabled selected value> -- select a file -- </option>
+						<% for(var i=0; i<trace.files.length; i++){ %>
+							<option class="content-text" value=<%= trace.files[i].name %>><%= trace.files[i].name %></option>
+						<% } %>
+					</select>
+				</div>
+				<div class="col-xs-2">
+					<button class="btn btn-primary" id="add-file">Add File</button>
+				</div>
+			</div>
+			<div class="row">
+				<p class="title-text">Files Selected</p>
+				<div class="col-xs-12" id="files-selected-list"></div>
+			</div>
+		</div>
+	</div>
+<% } %>

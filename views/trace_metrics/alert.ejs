@@ -1,0 +1,16 @@
+<div class="alert alert-info" role="alert" style="display: none; ">
+	No Data Available.
+	<% if(userId && (userId.id == trace.ownerId)){ %>
+		Upload a file to get it processed and get metrics for it. 
+	<% } %>
+</div>
+<div class="alert alert-danger" id="message-container" role="alert" style="display: none; ">
+	<span id="message"></span>
+	<button class="close" id="close-message-container"><span aria-hidden="true">&times;</span></button>
+</div>
+
+<div class="alert alert-success" id="new_data_alert" style="display: none;">
+	<div>
+	  <strong>Success!</strong> Metric Calculation completed. <a class="reload_button">Click here</a> to refresh page. 
+	</div>
+</div>

@@ -60,48 +60,52 @@ function getFileObject(file_name) {
 }
 
 function add_line(file_name, metric) {
-  const local_data = data[file_name];
+  
 
   // setting up the graph if it has not been set
   if (!document.getElementById("x-axis")) {
     setUpGraph();
   } 
 
-  // now check if x-axis or y-axis needs rescaling 
-  const local_y_max = metric_value_range[file_name][metric];
-  const x_axis_range = getXAxisRange();
-  const current_x_axis = x.domain();
+  rescale_graph();
 
-  console.log(x_axis_range);
-  console.log(current_x_axis);
-  console.log(moment(x_axis_range[0]).isSame(current_x_axis[0]));
+  // const local_data = data[file_name];
 
-  const y_axis_rescale_needed = (local_y_max > global_y_max);
-  const x_axis_rescale_needed = !(moment(x_axis_range[0]).isSame(current_x_axis[0]) && moment(x_axis_range[1]).isSame(current_x_axis[1]));
+  // // now check if x-axis or y-axis needs rescaling 
+  // const local_y_max = metric_value_range[file_name][metric];
+  // const x_axis_range = getXAxisRange();
+  // const current_x_axis = x.domain();
 
-  if (x_axis_rescale_needed || y_axis_rescale_needed) {
-    console.log("rescale graph");
-    if (y_axis_rescale_needed) global_y_max = local_y_max;
-    rescale_graph();
-  } else {
-    console.log("don't rescale graph");
-    line = d3.line().x(function (d) { return x(d.Date); }).y(function (d) { return y(d[metric]); });
-    line2 = d3.line().x(function (d) { return x2(d.Date); }).y(function (d) { return y2(d[metric]); });
-    Line_chart.append("path")
-        .datum(data[file_name])
-        .attr("class", "line")
-        .attr("id", `linechart_${file_name}_${metric}_main`)
-        .style("stroke", colorScale(getColorIndex(file_name, metric)))
-        .attr("d", line);
-    context.append("path")
-        .datum(data[file_name])
-        .attr("class", "line")
-        .attr("id", `context_${file_name}_${metric}_main`)
-        .style("stroke", colorScale(getColorIndex(file_name, metric)))
-        .attr("d", line2);
-    lines1[file_name][metric] = line;
-    lines2[file_name][metric] = line2;
-  }
+  // console.log(x_axis_range);
+  // console.log(current_x_axis);
+  // console.log(moment(x_axis_range[0]).isSame(current_x_axis[0]));
+
+  // const y_axis_rescale_needed = (local_y_max > global_y_max);
+  // const x_axis_rescale_needed = !(moment(x_axis_range[0]).isSame(current_x_axis[0]) && moment(x_axis_range[1]).isSame(current_x_axis[1]));
+
+  // if (x_axis_rescale_needed || y_axis_rescale_needed) {
+  //   console.log("rescale graph");
+  //   if (y_axis_rescale_needed) global_y_max = local_y_max;
+  //   rescale_graph();
+  // } else {
+  //   console.log("don't rescale graph");
+  //   line = d3.line().x(function (d) { return x(d.Date); }).y(function (d) { return y(d[metric]); });
+  //   line2 = d3.line().x(function (d) { return x2(d.Date); }).y(function (d) { return y2(d[metric]); });
+  //   Line_chart.append("path")
+  //       .datum(data[file_name])
+  //       .attr("class", "line")
+  //       .attr("id", `linechart_${file_name}_${metric}_main`)
+  //       .style("stroke", colorScale(getColorIndex(file_name, metric)))
+  //       .attr("d", line);
+  //   context.append("path")
+  //       .datum(data[file_name])
+  //       .attr("class", "line")
+  //       .attr("id", `context_${file_name}_${metric}_main`)
+  //       .style("stroke", colorScale(getColorIndex(file_name, metric)))
+  //       .attr("d", line2);
+  //   lines1[file_name][metric] = line;
+  //   lines2[file_name][metric] = line2;
+  // }
 
 }
 
@@ -164,6 +168,21 @@ function getXAxisRange() {
   return d3.extent(date_collection);
 }
 
+function getYAxisRange() {
+  let local_y_max = 0;
+  for (var file_name in all_selected_metrics) {
+    console.log(all_selected_metrics);
+    if (all_selected_metrics[file_name]) {
+      all_selected_metrics[file_name].forEach((metric) => {
+        if (metric_value_range[file_name][metric] > local_y_max) {
+          local_y_max = metric_value_range[file_name][metric];
+        }
+      });
+    }
+  }
+  return [0, local_y_max]
+}
+
 function setUpGraph() {
 
   x.domain(getXAxisRange());
@@ -212,8 +231,9 @@ function setUpGraph() {
 }
 
 function remove_line(metric, file_name) {
-  if(document.getElementById(`linechart_${metric}_main`)) document.getElementById(`linechart_${metric}_main`).remove();
-  if(document.getElementById(`context_${metric}_main`)) document.getElementById(`context_${metric}_main`).remove();
+  rescale_graph();
+  // if(document.getElementById(`linechart_${metric}_main`)) document.getElementById(`linechart_${metric}_main`).remove();
+  // if(document.getElementById(`context_${metric}_main`)) document.getElementById(`context_${metric}_main`).remove();
 }
 
 function rescale_graph() {
@@ -222,6 +242,7 @@ function rescale_graph() {
   if (document.getElementById(`x-axis`)) document.getElementById(`x-axis`).remove();
   if (document.getElementById(`y-axis`)) document.getElementById(`y-axis`).remove();
 
+  d3.selectAll('.line').remove();
   x.domain(getXAxisRange());
   x2.domain(x.domain())
   focus.append("g")
@@ -230,7 +251,7 @@ function rescale_graph() {
     .attr("transform", "translate(0," + height + ")")
     .call(xAxis);
   
-  y.domain([0, global_y_max]);
+  y.domain(getYAxisRange());
   y2.domain(y.domain());
   focus.append("g")
     .attr("class", "axis axis--y")
@@ -241,27 +262,31 @@ function rescale_graph() {
     //console.log(selection);
     const current_selection = all_selected_metrics[selection];
     //console.log(current_selection);
-    current_selection.forEach((metric) => remove_line(metric, selection));
-    current_selection.forEach((metric) => {
-      //console.log("trying for metirc");
-      //console.log(selection);
-      line = d3.line().x(function (d) { return x(d.Date); }).y(function (d) { return y(d[metric]); });
-      line2 = d3.line().x(function (d) { return x2(d.Date); }).y(function (d) { return y2(d[metric]); });
-      Line_chart.append("path")
-          .datum(data[selection])
-          .attr("class", "line")
-          .attr("id", `linechart_${metric}_main`)
-          .style("stroke", colorScale(getColorIndex(selection, metric)))
-          .attr("d", line);
-      context.append("path")
-          .datum(data[selection])
-          .attr("class", "line")
-          .attr("id", `context_${metric}_main`)
-          .style("stroke", colorScale(getColorIndex(selection, metric)))
-          .attr("d", line2);
-      lines1[selection][metric] = line;
-      lines2[selection][metric] = line2;
-    });
+    // current_selection.forEach((metric) => {
+    //   if(document.getElementById(`linechart_${metric}_main`)) remove_line(metric, selection)
+    // });
+    if (current_selection) {
+      current_selection.forEach((metric) => {
+        //console.log("trying for metirc");
+        //console.log(selection);
+        line = d3.line().x(function (d) { return x(d.Date); }).y(function (d) { return y(d[metric]); });
+        line2 = d3.line().x(function (d) { return x2(d.Date); }).y(function (d) { return y2(d[metric]); });
+        Line_chart.append("path")
+            .datum(data[selection])
+            .attr("class", "line")
+            .attr("id", `linechart_${metric}_main`)
+            .style("stroke", colorScale(getColorIndex(selection, metric)))
+            .attr("d", line);
+        context.append("path")
+            .datum(data[selection])
+            .attr("class", "line")
+            .attr("id", `context_${metric}_main`)
+            .style("stroke", colorScale(getColorIndex(selection, metric)))
+            .attr("d", line2);
+        lines1[selection][metric] = line;
+        lines2[selection][metric] = line2;
+      });
+    }
   }
 
 }

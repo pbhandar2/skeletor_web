@@ -126,6 +126,8 @@ $(document).on('click', '#remove-selected-file', function(){
     selected_files.splice(selected_files.indexOf(id_to_remove), 1);
     all_selected_metrics[file_name] = undefined;
     this.parentNode.parentNode.remove();
+ 
+    rescale_graph();
 });
 
 /*

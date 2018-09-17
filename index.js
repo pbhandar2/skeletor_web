@@ -136,7 +136,10 @@ app.get('/traces/:traceId', (req, res) => {
 app.post('/traces/:traceId', function(req, res){
 
 	// create an incoming form object
-	var form = new formidable.IncomingForm();
+	var form = new formidable.IncomingForm({ 
+	  uploadDir: __dirname + '/uploads',  // don't forget the __dirname here
+	  keepExtensions: true
+	});
 
 	// specify that we want to allow the user to upload multiple files in a single request
 	form.multiples = true;
@@ -146,11 +149,11 @@ app.post('/traces/:traceId', function(req, res){
 	// every time a file has been uploaded successfully,
 	// rename it to it's orignal name
 	form.on('file', function(field, file) {
-
-	// store all uploads in the /uploads directory
-	form.uploadDir = path.join(__dirname, '/uploads/' + req.params.traceId + "/" + file.name);
+		//console.log(file.path);
+		// store all uploads in the /uploads directory
+		form.uploadDir = path.join(__dirname, '/uploads/' + req.params.traceId + "/" + file.name);
 		fs.mkdirSync(`./uploads/${req.params.traceId}/${file.name}`);
-		console.log("dir created");
+		//console.log("dir created");
 		// move the file to the proper directory
 		fs.rename(file.path, path.join(form.uploadDir, file.name), (error) => {
 			if (error) console.log("An error occured while renaming and moving the file." + error);

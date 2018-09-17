@@ -17,8 +17,8 @@ socket.on(extract_socket_name, function (data) {
 
 const lambda_done_socket_name = `lambda_${id}`;
 socket.on(lambda_done_socket_name, function () {
-	console.log("LAMBDAAA");
-	console.log(lambda_needed);
+	//console.log("LAMBDAAA");
+	//console.log(lambda_needed);
 	lambda_completed = lambda_completed + 1;
     const width = (lambda_completed/(lambda_needed + 1)) * 100;
     $('#metric-bar').css('width', width + "%");

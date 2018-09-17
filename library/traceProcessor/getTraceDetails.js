@@ -55,25 +55,23 @@ async function get_trace_start_date(file_loc) {
 	});
 }
 
-async function process_trace(file_name, id) {
+async function process_trace(file_name, id, io) {
 
 	return await new Promise((resolve, reject) => {
 		try {
-			const get_start_date_promise = get_trace_start_date(`${app_dir}/uploads/${id}/${file_name}`);
+			const get_start_date_promise = get_trace_start_date(`${app_dir}/uploads/${id}/${file_name}/${file_name}`);
 
 			get_start_date_promise.then((start_date_string) => {
-
-				console.log(start_date_string);
 
 				let line_count = 0;
 				let file_count = 0;
 				let file_completed = 0;
 				let done = 0;
-				let output_file_name = `${app_dir}/uploads/${id}/${file_count}`;
+				let output_file_name = `${app_dir}/uploads/${id}/${file_name}/${file_count}`;
 				let outStream = fs.createWriteStream(output_file_name);
 
 				// read the gz file and pipe the output to gunzip which gives the extracted output 
-				var gzip_read_stream = fs.createReadStream(`${app_dir}/uploads/${id}/${file_name}`)
+				var gzip_read_stream = fs.createReadStream(`${app_dir}/uploads/${id}/${file_name}/${file_name}`)
 					.pipe(zlib.Gunzip());
 
 				// pipe the extracted files stream to readline to read it line by line
@@ -90,7 +88,7 @@ async function process_trace(file_name, id) {
 						const upload_file_promise = upload_file(output_file_name, `${id}/${file_name}/parts/${file_count}`);
 						line_count = 0;
 						file_count++;
-						output_file_name = `${app_dir}/uploads/${id}/` + file_count;
+						output_file_name = `${app_dir}/uploads/${id}/${file_name}/` + file_count;
 						outStream = fs.createWriteStream(output_file_name);
 						
 						upload_file_promise.then((file_loc) => {
@@ -111,6 +109,10 @@ async function process_trace(file_name, id) {
 							const lambda_promise = call_lambda(payload, "arn:aws:lambda:us-east-2:722606526443:function:process_gpfs_trace");
 							lambda_promise.then((flag) => {
 								file_completed++;
+								if (io) {
+									console.log(`io is called so calling lambda_${id}`);
+									io.emit(`lambda_${id}`);
+								}
 								console.log(`split: ${file_count}, completed: ${file_completed}, done: ${done}`);
 								if (file_completed == file_count && done) {
 									console.log("COMPLETED UPLOADING ALL FILE!");
@@ -121,15 +123,20 @@ async function process_trace(file_name, id) {
 									const get_final_json_promise = call_lambda(get_final_json_payload, "arn:aws:lambda:us-east-2:722606526443:function:get_file_metrics");
 									get_final_json_promise.then((flag) => {
 										console.log("COMPLETED METRIC CALCULATION!")
+										if (io) {
+											io.emit(`calculation_done_${id}`);
+										}
 									}).catch((err) => {
 										console.log(err);
 									});
 								}
 							}).catch((err) => {
+								console.log(`the error is from process_gpfs_trace`);
 								console.log(err);
 							});
 
 						}).catch((err) => {
+							console.log(`the error is from upload file`);
 							console.log(err);
 						});
 						
@@ -143,11 +150,13 @@ async function process_trace(file_name, id) {
 					resolve(1);
 				});
 			}).catch((err) => {
+				console.log(`this error is from getting trace start date`);
 				console.log(err);
 			});
 		}
 		catch(err) {
 			console.log(err);
+			console.log("try catch in process trace");
 			reject();
 		}
 	});

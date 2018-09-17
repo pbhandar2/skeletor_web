@@ -6,8 +6,8 @@ function remove_trace(traceId) {
 	return require("./trace.js").remove_trace(traceId);
 }
 
-function add_file(file, traceId) {
-	return require("./trace.js").add_file(file, traceId);
+function add_file(file, traceId, io) {
+	return require("./trace.js").add_file(file, traceId, io);
 }
 
 module.exports = { create_trace, remove_trace, add_file };

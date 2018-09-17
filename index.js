@@ -65,6 +65,11 @@ io.on('connection', function(socket){
 
 });
 
+function done(params) {
+	console.log("it is done");
+	console.log(params);
+}
+
 
 const uploads_path = "./uploads";
 if (fs.existsSync(uploads_path)) {
@@ -135,269 +140,43 @@ app.post('/traces/:traceId', function(req, res){
 
 	// specify that we want to allow the user to upload multiple files in a single request
 	form.multiples = true;
-
 	form.maxFileSize = 2097314290000;
-
-	// store all uploads in the /uploads directory
-	form.uploadDir = path.join(__dirname, '/uploads/' + req.params.traceId);
-
 	const start = moment();
 
 	// every time a file has been uploaded successfully,
 	// rename it to it's orignal name
 	form.on('file', function(field, file) {
 
+	// store all uploads in the /uploads directory
+	form.uploadDir = path.join(__dirname, '/uploads/' + req.params.traceId + "/" + file.name);
+		fs.mkdirSync(`./uploads/${req.params.traceId}/${file.name}`);
+		console.log("dir created");
 		// move the file to the proper directory
 		fs.rename(file.path, path.join(form.uploadDir, file.name), (error) => {
 			if (error) console.log("An error occured while renaming and moving the file." + error);
 			else {
+				const file_object = {
+					"name": file.name,
+					"size": file.size,
+					"path": `./uploads/${req.params.traceId}/${file.name}/${file.name}`
+				};
 
-				console.log(file);
-
-			    console.log(req.params.traceId);
-
-				const zlib = require('zlib');
-				const id = req.params.traceId;
-				var file_count = 0; // the count for the file name
-				var count = 0; // counting the number of lines for the current file 
-				var output_file_name; // the output file name that changes everytime
-				var outStream; // the outstream that will change when the line limit is hit 
-				createNewWriteStream(id); // create the initial write stream 
-				const data_location = form.uploadDir;
-				var start_date_string = "0";
-				var num_files = 0;
-				var read_done = 0;
-				
-				const file_name = file.name;
-				const file_size = file.size;
-				const original_file_location = `${data_location}/${file_name}`;
-
-				console.log(file_size);
-
-				const num_blocks = Math.ceil(file_size/50000000) * 10;
-
-				console.log(num_blocks);
-
-			    // updating the file information to the queue in the database 
-			    const ddb_res = ddb.update({
-			      TableName: "traces",
-			      Key: { id: req.params.traceId },
-			      UpdateExpression: 'set #queue.#file_name = :file_object',
-			      ExpressionAttributeNames: {
-			        '#file_name': file.name,
-			        '#queue': 'queue'
-			      },
-			      ConditionExpression: 'attribute_not_exists(#queue.#file_name)',
-			      ExpressionAttributeValues: {
-			        ':file_object': {
-			          'name': file.name,
-			          'size': file.size,
-			          'done': 0,
-			          'need': num_blocks,
-			        }
-			      }
-			      }, function(data, err) {
-			        if (err.stack) console.log("Eroor in adding file information to the database " + JSON.stringify(err.stack));
-			        else {
-			          // send message to client that the extraction has completed and the required number of blocks
-			          // io.emit(`extract_${req.params.traceId}`, { 'file': file.name, 'num_blocks': num_blocks });
-			          console.log("done");
-			        }
-			    });
-
-				io.emit(`extract_${req.params.traceId}`, { 'file': file.name, 'num_blocks': num_blocks });
-
-				// read the gz file and pipe the output to gunzip which gives the extracted output 
-				var gzip_read_stream = fs.createReadStream(`${data_location}/${file_name}`)
-					.pipe(zlib.Gunzip());
-
-				// pipe the extracted files stream to readline to read it line by line
-				var lineReader = require('readline').createInterface({
-				    input: gzip_read_stream
-				});
-
-				// each line is placed on its proper part file 
-				lineReader.on('line', function(line) {
-					count++;
-					//console.log("this is the start date string here")
-					//console.log(start_date_string);
-					outStream.write(line + '\n');
-					if (start_date_string == "0") {
-						if (line.includes("begins:")) {
-				          var date_string = line.split("begins:")[1];
-				          const date_obj = moment(date_string, " ddd MMM  D HH:mm:ss YYYY");
-				          start_date_string = date_obj.format("YYYY-MM-DD-HH-mm-ss");
-				          console.log("The trace begins on " + start_date_string);
-						} else if (line.includes("all streams included")) { // for format T2
-							const split_line = line.split(" ").filter(String);
-							const date_string = split_line.slice(3, 8).join(" ");
-							const date_obj = moment(date_string, "ddd MMM D HH:mm:ss.SSS YYYY");
-							const start_date_string = date_obj.format("YYYY-MM-DD-HH-mm-ss");
-						}
-						console.log("The trace begins on " + start_date_string);
-					}
-					if (count > 400000) {
-						uploadAndProcess(`${id}/${file_name}/parts/${file_count}`, output_file_name, file_count, original_file_location);
-						file_count++; // increase the file count so that the next file is created
-						outStream.end();
-						createNewWriteStream(id);
-					}
-				});
-
-				lineReader.on('close', function() {
-				    if (count > 0) {
-				        console.log('Final close:', output_file_name, count);
-				    }
-				    gzip_read_stream.close();
-				    outStream.end();
-				    //console.log('Done');
-				    read_done = file_count + 1
-				    uploadAndProcess(`${id}/${file_name}/parts/${file_count}`, output_file_name, file_count, original_file_location);
-		          	// send message to client that the extraction has completed and the required number of blocks
-		          	//io.emit(`extract_${id}`, { 'file': file.name, 'num_blocks': file_count });
-		          	io.emit(id, "Read the entire file");
-				});
-
-				function createNewWriteStream(id) {
-					output_file_name = path.join(__dirname, `/uploads/${id}/` + file_count);
-					outStream = fs.createWriteStream(output_file_name);
-					count = 0;
-				}
-
-				function uploadAndProcess(key, file_path, file_count, original_file_location) {
-					// console.log("processed");
-					// console.log(key);
-					// console.log(file_path);
-					var uploadParams = { Bucket: 'fstraces', Key: key , Body: ''};
-			        var fileStream = fs.createReadStream(file_path);
-			        fileStream.on('error', function(err) {
-			          console.log('File Error', err);
-			        });
-			        uploadParams.Body = fileStream;
-			        console.log("going to upload this");
-			        s3.upload (uploadParams, function (err, data) {
-			        	console.log("inside upload");
-						if (err) {
-							console.log("Error", err);
-						}
-						else {
-				            console.log("Upload Success", data.Location);
-
-				            fs.unlink(file_path, function(e) {
-				              if (e) console.log(e);
-				            });
-
-				            // invoke lambda function to process the trace when the upload is a sucess
-
-				            const payload = {
-				              "key": key,
-				              "id": id,
-				              "file": file_name,
-				              "part": `${file_count}`,
-				              "start_date": start_date_string,
-				              "size": file_size,
-				              "test": "test",
-				              "date": start_date_string
-				            };
-
-				            //console.log("this is my payload" + JSON.stringify(payload))
-
-				            var lambda_params = {
-				             FunctionName: "arn:aws:lambda:us-east-2:722606526443:function:process_gpfs_trace",
-				             Payload: JSON.stringify(payload),
-				            };
-
-							lambda.invoke(lambda_params, function(err, data) {
-								if (err) {
-									console.log('lambda error');
-									console.log(err, err.stack); 
-								} else {
-									io.emit(`lambda_${req.params.traceId}`);
-									console.log('lambda done')
-									// fs.unlink(file_path, function(err) {
-									// 	if (err) console.log(" error in deletion " + err);
-									// 	else console.log(` deleted ${file_path}`);
-									// });
-									//console.log(original_file_location);
-									num_files = num_files + 1;
-									//var fs = require('fs');
-									// console.log(file_path);
-									// if (fs.existsSync(file_path)) {
-									// 	console.log("IT EXISTS");
-									// 	console.log(file_path);
-									//     // Do something
-									// }
-									// io.emit(`lambda_${m.traceId}`);
-									// process.send({ msg: "lambda" });
-									// when all the lambda function has finished processing 
-									// call a socket to tell the page that new data is 
-									// avaialble 
-									//console.log("num files is " + num_files);
-									//console.log("read_count is " + file_count);
-									if (read_done && num_files == read_done) {
-										//console.log("read done is " + read_done);
-										//console.log(original_file_location);
-										
-							            const combine_json_payload = {
-							              "id": id,
-							              "file": file_name,
-							              "size": file_size
-							            };
-							            lambda_params = {
-							             FunctionName: "arn:aws:lambda:us-east-2:722606526443:function:combine_json",
-							             Payload: JSON.stringify(combine_json_payload),
-							            };
-							            lambda.invoke(lambda_params, function(err, data) {
-							            	if (err) console.log(err, err.stack);
-							            	else {
-												let end = moment();
-												let diff = end.diff(start);
-												let f = moment.utc(diff).format("HH:mm:ss.SSS");
-												console.log(f);
-							            		io.emit(`calculation_done_${req.params.traceId}`);
-
-							            		uploadParams = { Bucket: 'fstraces', Key: `${id}/file/${file_name}` , Body: ''};
-							            		fileStream = fs.createReadStream(original_file_location);
-		            					        fileStream.on('error', function(err) {
-										          console.log('File Error', err);
-										        });
-										        uploadParams.Body = fileStream;
-										        s3.upload (uploadParams, function (err, data) {
-										        	if (err) console.log(" cannot upload the main file " + err);
-										        	else {
-										        		console.log("MAIN FILE UPLOADED");
-			        						            fs.unlink(original_file_location, function(e) {
-											              if (e) console.log(e);
-											            });
-										        	}
-										        });
-							            	}
-							            });
-										// params = {
-										// 	ExpressionAttributeValues: {
-										// 		":id": idnum_
-										// 	},
-										// 	KeyConditionExpression: "id = :id",
-										// 	TableName: "traces"
-										// }
-
-
-										// 	ddb.query(params, function(err, data) {
-										// 		if (err) console.log(err)
-										// 		else {
-										// 			console.log("DAKNLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL")
-										// 			//io.emit("metricChange", data.Items[0]);
-										// 			//io.emit(`calculation_done_${req.params.traceId}`);
-										// 			//process.send({ msg: "done" });
-										// 		}
-										// 	});
-
-									}
-								}
-							});
-						}
-			        });
-				}
+				const aws = require("./library/aws");
+		        const add_file_promise = aws.add_file(file_object, req.params.traceId, io);
+		        add_file_promise.then((flag) => {
+		            const traceProcessor = require("./library/traceProcessor");
+		            const process_trace_file_promise = traceProcessor.processTraceFile(file.name, req.params.traceId, io);
+			        process_trace_file_promise.then((flag) => {
+			            let end = moment();
+			            let diff = end.diff(start);
+			            let f = moment.utc(diff).format("HH:mm:ss.SSS");
+			            console.log(f);
+			        }).catch((err) => {
+			            console.log(err);
+			        }).then(done, done);
+		        }).catch((err) => {
+		            console.log(err);
+		        }).then(done, done);
 			}
 		});
 	});

@@ -60,7 +60,7 @@ async function remove_trace(traceId) {
 	});
 }
 
-async function add_file(file, traceId) {
+async function add_file(file, traceId, io) {
 	return await new Promise((resolve, reject) => {
 
 		/* 
@@ -70,6 +70,11 @@ async function add_file(file, traceId) {
 		const fileSize = file.size;
 		const estExtractedFileSize = fileSize * 15;
 		const numBlocks = Math.ceil(estExtractedFileSize/blockSize);
+
+		if (io) {
+			console.log(`io is called so calling extract_${traceId}`);
+			io.emit(`extract_${traceId}`, numBlocks);
+		}
 
 		const params = {
 			TableName: "traces",

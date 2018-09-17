@@ -15,7 +15,7 @@ $(document).ready(function() {
       lambda_needed = queue_object.need;
     });
     const width = (lambda_completed/(lambda_needed + 1)) * 100;
-    if (lambda_needed) $('small').text("Calculating metrics!");
+    if (lambda_needed) $('#metric-status').text("Calculating metrics!");
     $('#metric-bar').css('width', width + "%");
   }
 

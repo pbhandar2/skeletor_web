@@ -12,8 +12,10 @@
 			const id = "<%= trace.id %>";
 			const files = <%- JSON.stringify(trace.files) %>;
 			const queue = <%- JSON.stringify(trace.queue) %>;
+			console.log(files);
 		</script>
 		<script src="/js/trace_page.js"></script>
+		<script src="/js/trace_page/socket.js"></script>
 	    
 		<link rel="stylesheet" href="/css/main.css">
 		<link rel="stylesheet" href="/css/trace_page.css">
@@ -22,7 +24,6 @@
 	</head>
 	<body>
 		<%- include("shared/navbar", { login: userId }) %>
-		<button id="test-loader">LOAD</button>
 		<div class="container">
 			<%- include("trace_metrics/alert.ejs") %>
 			<%- include("trace_metrics/trace_details.ejs", { userId: userId, trace: trace }) %>
@@ -32,7 +33,7 @@
 			<div class="row card" id="chart-container">
 				<div class="col-xs-12">
 					<div class="row" id="chart-main">
-						<svg id="svg1" width="1100" height="600"></svg>
+						<svg id="svg1" width="960" height="500"></svg>
 					</div>
 <!-- 					<div class="row">
 						<select id="add_metric_value"></select>
@@ -43,7 +44,8 @@
 					</div> -->
 				</div>
 			</div>
-			<script src="/js/trace_page/chart_loader.js"></script>
+			<script src="/js/trace_page/basic_graph_setup.js"></script>
+			<script src="/js/trace_page/graph.js"></script>
 			<script src="/js/trace_page/file_selector.js"></script>
 		</div>
 	</body>

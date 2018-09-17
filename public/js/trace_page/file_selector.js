@@ -1,6 +1,10 @@
 let selected_files = [];
 let all_selected_metrics = {};
 
+// color scale to choose color from 
+const colorScale = d3.scaleSequential(d3.interpolateWarm).domain([0, getTotalMetrics()]);
+
+
 /*
 	This function is called when a user cliks on a file to add that data
 	to the chart. This will do a UI update to show the file name, metric
@@ -12,9 +16,12 @@ $("#add-file").click(function(){
 	const select_element = document.getElementById("file-selector");
 	const selected_file = select_element.value;
 
-	if (select_element.value != "none" && selected_files.indexOf(selected_file) < 0 && selected_files.length < 1) {
+	if (select_element.value != "none" && selected_files.indexOf(selected_file) < 0) {
 		const file_selected_div = document.getElementById("files-selected-list");
 		
+		// loading the data for that particular file into the chart
+		loadData(id, selected_file);
+
 		// updating the selected file array with the file name 
 		// updating the selected metrics to have an entry for this file 
 		selected_files.push(selected_file);
@@ -38,7 +45,7 @@ $("#add-file").click(function(){
 		select_element_wrapper.className = `col-xs-4 ${selected_file}`;
 		const file_object = files.find((file) => file.name == selected_file);
 		const file_select_element = create_selected_file_element(file_object.fields);
-		file_select_element.id = "selected-metric";
+		file_select_element.id = `selected-metric-${selected_file}`;
 		select_element_wrapper.appendChild(file_select_element);
 
 		// add metric button
@@ -68,6 +75,7 @@ $("#add-file").click(function(){
 		selected_metrics_area_wrapper.className = "row";
 		selected_metrics_area = document.createElement("div");
 		selected_metrics_area.id = `selected-metric-area-${selected_file}`;
+		//selected_metrics_area_wrapper.style.cssText ="margin-top: 5px;"
 		selected_metrics_area_wrapper.appendChild(selected_metrics_area);
 
 		// appending everything to the main wrapper and then appending that to the list div
@@ -79,11 +87,7 @@ $("#add-file").click(function(){
 		main_wrapper.appendChild(selected_metrics_area);
 
 		file_selected_div.appendChild(main_wrapper);
-
 	}
-
-	// loading the data for that particular file into the chart
-	loadData(selected_file);
 
 });
 
@@ -130,28 +134,30 @@ $(document).on('click', '#remove-selected-file', function(){
 	relevant file and also adds a line to the graph for this metric, file combination.
 */
 $(document).on('click', '#add-selected-metric', function(){ 
-	const add_metric_value = document.getElementById("selected-metric").value;
+
 	const file_name = this.parentNode.className.split(" ").pop();
 	const selected_metrics = all_selected_metrics[file_name];
+
+	const add_metric_value = document.getElementById(`selected-metric-${file_name}`).value;
+	console.log(add_metric_value);
 
 	if (selected_metrics.indexOf(add_metric_value) < 0) {
 		const selected_metrics_area = document.getElementById(`selected-metric-area-${file_name}`);
 		all_selected_metrics[file_name].push(add_metric_value);
+
+		add_line(file_name, add_metric_value);
+
 		const color = "red";
 
 		// createa a span element so that everything is in line
 		const span_element = document.createElement("span");
-		span_element.style = `background-color:${color};`;
+		span_element.style = `background-color:${colorScale(getColorIndex(file_name, add_metric_value))};`;
 		span_element.id = "metric-badge";
 		span_element.className = "badge";
 		span_element.innerHTML = add_metric_value;
 
 		selected_metrics_area.appendChild(span_element);
 	}
-
-	add_line(add_metric_value, file_name);
-
-
 });
 
 $(document).on('click', '#metric-badge', function(){

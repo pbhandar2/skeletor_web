@@ -160,7 +160,6 @@ function get_file_object(file_name) {
 }
 
 function add_line(metric, file_name) {
-	// add line to the graph and make sure there is one 
 
 	const local_data = data[file_name];
 	const metric_value_range = overall_metric_values[file_name];
@@ -174,6 +173,7 @@ function add_line(metric, file_name) {
 		max_y_val = y_max;
 		rescale_graph();
 	} else {
+		console.log("just add line");
 		const line = d3.line().x(function (d) { return x(d.date); }).y(function (d) { return y(d[metric]); });
 	    Line_chart.append("path")
 	        .datum(local_data)

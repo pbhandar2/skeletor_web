@@ -93,7 +93,7 @@ async function process_trace(file_name, id, io) {
 						
 						upload_file_promise.then((file_loc) => {
 
-							fs.unlink(file_loc);
+							fs.unlinkSync(file_loc);
 							const split_file_name = file_loc.split("/");
 							const file_number = split_file_name[split_file_name.length-1];
 

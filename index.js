@@ -163,24 +163,23 @@ app.post('/traces/:traceId', function(req, res){
 					"size": file.size,
 					"path": `./uploads/${req.params.traceId}/${file.name}/${file.name}`
 				};
-				console.log(file_object);
 
-				// const aws = require("./library/aws");
-		  //       const add_file_promise = aws.add_file(file_object, req.params.traceId, io);
-		  //       add_file_promise.then((flag) => {
-		  //           const traceProcessor = require("./library/traceProcessor");
-		  //           const process_trace_file_promise = traceProcessor.processTraceFile(file.name, req.params.traceId, io);
-			 //        process_trace_file_promise.then((flag) => {
-			 //            let end = moment();
-			 //            let diff = end.diff(start);
-			 //            let f = moment.utc(diff).format("HH:mm:ss.SSS");
-			 //            console.log(f);
-			 //        }).catch((err) => {
-			 //            console.log(err);
-			 //        }).then(done, done);
-		  //       }).catch((err) => {
-		  //           console.log(err);
-		  //       }).then(done, done);
+				const aws = require("./library/aws");
+		        const add_file_promise = aws.add_file(file_object, req.params.traceId, io);
+		        add_file_promise.then((flag) => {
+		            const traceProcessor = require("./library/traceProcessor");
+		            const process_trace_file_promise = traceProcessor.processTraceFile(file.name, req.params.traceId, io);
+			        process_trace_file_promise.then((flag) => {
+			            let end = moment();
+			            let diff = end.diff(start);
+			            let f = moment.utc(diff).format("HH:mm:ss.SSS");
+			            console.log(f);
+			        }).catch((err) => {
+			            console.log(err);
+			        }).then(done, done);
+		        }).catch((err) => {
+		            console.log(err);
+		        }).then(done, done);
 			}
 		});
 	});

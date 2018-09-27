@@ -2,6 +2,8 @@
 // key is the name of the file 
 let data = {}; 
 
+const colorScale = d3.scaleSequential(d3.interpolateWarm).domain([0, 20]);
+
 // metric_value_range is a dict that holds the maximum value for each metric
 // of a file so that we know what to scale the y-axis to when a metric is added
 let metric_value_range = {};
@@ -23,7 +25,7 @@ let line_array = [];
     id: the trace id to which the file belongs
     file_name: the name of the file
 */
-function loadData(id, file_name) {
+function loadData(id, file_name, metric) {
   const url = `https://s3.us-east-2.amazonaws.com/fstraces/${id}/${file_name}/final.json`;
   const file_object = getFileObject(file_name);
   const fields = file_object.fields;
@@ -50,6 +52,7 @@ function loadData(id, file_name) {
     metric_value_range[file_name] = local_metric_value_range;
     lines1[file_name] = {};
     lines2[file_name] = {};
+    add_line(file_name, metric);
   });
 }
 
@@ -265,6 +268,7 @@ function rescale_graph() {
     // current_selection.forEach((metric) => {
     //   if(document.getElementById(`linechart_${metric}_main`)) remove_line(metric, selection)
     // });
+
     if (current_selection) {
       current_selection.forEach((metric) => {
         //console.log("trying for metirc");
@@ -285,6 +289,9 @@ function rescale_graph() {
             .attr("d", line2);
         lines1[selection][metric] = line;
         lines2[selection][metric] = line2;
+        console.log(document.getElementById(`${selection}-${metric}`));
+        //document.getElementById(`${selection}-${metric}`).style.color= colorScale(getColorIndex(selection, metric));
+        document.getElementById(`${selection}-${metric}`).style.backgroundColor= colorScale(getColorIndex(selection, metric));
       });
     }
   }

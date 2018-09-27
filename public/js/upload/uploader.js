@@ -29,7 +29,8 @@ $(document).ready(function() {
     for (var i = 0; i < files.length; i++) {
       const file_obj = files[i];
       addFile(file_obj, "UPLOADING.");
-      to_upload.push(files[i].name);
+      console.log(files[i].size);
+      to_upload.push({ "name": files[i].name, "size": files[i].size });
     }
 
     if (files.length > 0){
@@ -37,12 +38,10 @@ $(document).ready(function() {
 
       //loop through all the selected files
       for (var i = 0; i < files.length; i++) {
-        console.log(file);
         var file = files[i];
         file.id = id;
         formData.append('uploads[]', file, file.name);
       }
-
 
       formData.id = id;
       formData.files = to_upload;
@@ -59,6 +58,7 @@ $(document).ready(function() {
             let diff = end.diff(start);
             let f = moment.utc(diff).format("HH:mm:ss.SSS");
             console.log(f);
+            console.log(queue);
             //$('small').text("Extracting file");
         },
         xhr: function() {
@@ -78,19 +78,27 @@ $(document).ready(function() {
               //$(`#${to_upload[0]}-progress`).width(percentComplete + '%');
 
               to_upload.forEach((file) => {
-                document.getElementById(`${file}-progress`).style.width = percentComplete/to_upload.length + '%';
+                document.getElementById(`${file.name}-progress`).style.width = percentComplete/to_upload.length + '%';
               });
               
               // console.log(formData);
               // console.log("is in here");
               // console.log(`#${to_upload[0]}-progress`);
               // console.log($(`#${to_upload[0]}-progress`))
-              console.log(document.getElementById(`${to_upload[0]}-progress`))
+              //console.log(document.getElementById(`${to_upload[0]}-progress`))
 
               // once the upload reaches 100%, set the progress bar text to done
               if (percentComplete === 100) {
                 to_upload.forEach((file) => {
-                  uploadCompleted(file);
+                  uploadCompleted(file.name);
+                  lambda_needed = file.size * 15/50000000;
+                  queue_obj = {
+                    name: file.name,
+                    size: file.size,
+                    done: 0,
+                    need: lambda_needed
+                  }
+                  queue[file.name] = queue_obj;
                 });
                 document.getElementById("file-upload-btn").disabled = false;
                 //document.getElementById("uploadForm").reset();

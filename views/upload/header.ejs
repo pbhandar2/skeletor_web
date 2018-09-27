@@ -11,11 +11,12 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
   <script type="text/javascript">
     // retrieving these value in here so that other js files can use it
-    const files = <%- JSON.stringify(trace.files) %>;
-    const queue = <%- JSON.stringify(trace.queue) %>;
+    let files = <%- JSON.stringify(trace.files) %>;
+    let queue = <%- JSON.stringify(trace.queue) %>;
     const trace = <%- JSON.stringify(trace) %>;
-    let selected_metrics = [];
+    const id = trace.id;
   </script>
+  <script src="/js/upload/chart_utils.js"></script>
   <script src="/js/upload/file_list.js"></script>
   <script src="/js/upload/uploader.js"></script>
 </head>

@@ -5,8 +5,10 @@ $(document).ready(function() {
 
 		if (current_class.includes("btn-light")) {
 			this.className = "btn btn-success metric_button";
+			addMetric(this.innerHTML, this.id);
 		} else {
 			this.className = "btn btn-light metric_button";
+			removeMetric(this.innerHTML, this.id);
 		}
 	});
 });
@@ -37,7 +39,7 @@ function renderFileListContainer() {
 	// the getelements function returns an array and here I am assuming
 	// that there is no other element by the class name "container" which 
 	// is a fair assumption
-	document.getElementsByClassName("container")[0].append(main_row);
+	document.getElementsByClassName("file-list-wrapper")[0].append(main_row);
 }
 
 /*
@@ -157,6 +159,11 @@ function uploadCompleted(file) {
 	progress_div_status.innerHTML = "ANALYZING.";
 	const file_row = document.getElementById(`${file}-main`);
 	file_row.style.borderColor = "#ffcc66";
+}
+
+function analysisCompleted(file) {
+	document.getElementById(`${file}-main`).remove();
+	addFile(file, "PROCESSED.");
 }
 
 

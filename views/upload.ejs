@@ -5,8 +5,18 @@
         <%- include("shared/navbar", { login: userId }) %>
         <div class="container">
             <%- include("upload/banner.ejs", { userId: userId, trace: trace }) %>
+            <div class="file-list-wrapper"></div>
+            <div class="row card" id="chart-container">
+                <div class="col-xs-12">
+                    <div class="row" id="chart-main">
+                        <svg id="svg1" width="960" height="500"></svg>
+                    </div>
+                </div>
+            </div>
         </div>
         <%- include("shared/footer") %>
         <script src="/js/upload/index.js"></script>
+        <script src="/js/trace_page/basic_graph_setup.js"></script>
+        <script src="/js/trace_page/graph.js"></script>
     </body>
 </html>

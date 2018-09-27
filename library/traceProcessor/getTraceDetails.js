@@ -111,7 +111,7 @@ async function process_trace(file_name, id, io) {
 								file_completed++;
 								if (io) {
 									console.log(`io is called so calling lambda_${id}`);
-									io.emit(`lambda_${id}`);
+									io.emit(`lambda_${id}`, file_name);
 								}
 								console.log(`split: ${file_count}, completed: ${file_completed}, done: ${done}`);
 								if (file_completed == file_count && done) {

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+    <%- include("upload/header") %>
+    <body>
+        <%- include("shared/navbar", { login: userId }) %>
+        <div class="container">
+            <%- include("upload/banner.ejs", { userId: userId, trace: trace }) %>
+        </div>
+        <%- include("shared/footer") %>
+        <script src="/js/upload/index.js"></script>
+    </body>
+</html>

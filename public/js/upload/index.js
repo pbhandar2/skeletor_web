@@ -6,6 +6,7 @@ if (files.length || Object.keys(queue).length) {
 	console.log(queue);
 	renderFileListContainer();
 	renderFileList(files);
+	renderQueueList(queue);
 } else {
 	console.log("there is no file list");
 }

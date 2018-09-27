@@ -53,6 +53,17 @@ function renderFileList(files) {
 	});
 }
 
+function renderQueueList(files) {
+	console.log(files);
+
+	for (var file_name in files) {
+		addFile(files[file_name], "ANALYZING.");
+	}
+	// files.forEach((file) => {
+	// 	addFile(file, "ANALYZING.");
+	// });
+}
+
 /*
 	This function creates and attaches the content to display for each file
 */
@@ -130,7 +141,7 @@ function addFile(file, file_status) {
 
 	} else {
 		file_row.style.borderColor = "#ffcc66";
-		progress_bar.style.width = "0%";
+		progress_bar.style.width = (file.done/file.need)*100 + "%";
 		progress_bar.style.backgroundColor = "#ffcc66";
 		progress_bar_status.style.color = "black";
 	}

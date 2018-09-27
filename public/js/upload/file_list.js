@@ -77,6 +77,7 @@ function addFile(file, file_status) {
 	const progress_bar_col = document.createElement("div");
 	progress_bar_col.className = "col-xs-9";
 	const progress_bar = document.createElement("div");
+	progress_bar.id = `${file.name}-progress`;
 	progress_bar.style.padding = "1px";
 	progress_bar.style.margin = "0 0 0 5px";
 
@@ -118,6 +119,18 @@ function addFile(file, file_status) {
 		});
 
 		metrics.append(metric_col);
+	} else if (file_status == "UPLOADING.") {
+
+		file_row.style.borderColor = "#3399ff";
+
+		// the second row will contain list of metrics
+		metrics = document.createElement("div");
+		metrics.className="row";
+
+		progress_bar.style.width = "0%";
+		progress_bar.style.backgroundColor = "#3399ff";
+		progress_bar_status.style.color = "black";
+
 	}
 
 	// append in order of smaller element moving to their parent elements
@@ -134,6 +147,8 @@ function addFile(file, file_status) {
 	file_row.append(wrapper);
 	file_list_container.append(file_row);
 }
+
+
 
 
 

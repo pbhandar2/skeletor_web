@@ -1,3 +1,16 @@
+$(document).ready(function() {
+	$(".metric_button").on("click", function (e) {
+		e.preventDefault();
+		const current_class = this.className;
+
+		if (current_class.includes("btn-light")) {
+			this.className = "btn btn-success metric_button";
+		} else {
+			this.className = "btn btn-light metric_button";
+		}
+	});
+});
+
 /*
 	This function renders the containers that they need for file list 
 */
@@ -12,7 +25,6 @@ function renderFileListContainer() {
 	main_col.className = "col-xs-12";
 	main_col.id = "file-list-container";
 	
-
 	// creating the title text
 	const title_text = document.createElement("p");
 	title_text.className = "title-text";
@@ -27,8 +39,6 @@ function renderFileListContainer() {
 	// is a fair assumption
 	document.getElementsByClassName("container")[0].append(main_row);
 }
-
-
 
 /*
 	This function iterates through the file and adds each file to the file
@@ -68,6 +78,7 @@ function addFile(file, file_status) {
 	progress_bar_col.className = "col-xs-9";
 	const progress_bar = document.createElement("div");
 	progress_bar.style.padding = "1px";
+	progress_bar.style.margin = "0 0 0 5px";
 
 	const progress_bar_status = document.createElement("span");
 	progress_bar_status.innerHTML = file_status;
@@ -81,9 +92,13 @@ function addFile(file, file_status) {
 
 	// process things differently based on the file status
 	if (file_status == "PROCESSED.") {
+
+		file_row.style.borderColor = "green";
+
 		// the second row will contain list of metrics
 		metrics = document.createElement("div");
 		metrics.className="row";
+
 
 		progress_bar.style.width = "100%";
 		progress_bar.style.backgroundColor = "green";
@@ -117,9 +132,7 @@ function addFile(file, file_status) {
 	if (file_status == "PROCESSED.") wrapper.append(metrics);
 
 	file_row.append(wrapper);
-	
 	file_list_container.append(file_row);
-	
 }
 
 

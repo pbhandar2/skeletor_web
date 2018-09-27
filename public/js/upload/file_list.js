@@ -53,15 +53,17 @@ function renderFileList(files) {
 	});
 }
 
+/*
+	This function iterates through the queue and adds a queue file list type
+	to the file list container. 
+*/
+
 function renderQueueList(files) {
-	console.log(files);
 
 	for (var file_name in files) {
 		addFile(files[file_name], "ANALYZING.");
 	}
-	// files.forEach((file) => {
-	// 	addFile(file, "ANALYZING.");
-	// });
+
 }
 
 /*
@@ -124,12 +126,14 @@ function addFile(file, file_status) {
 		metric_col.className = "col-xs-12";
 
 		file.fields.forEach((field) => {
-			const metric_button = document.createElement("button");
-			metric_button.className = "btn btn-light metric_button";
-			metric_button.id = `${file.name}-${field}`;
-			metric_button.innerHTML = field;
-			metric_button.style.margin = "5px 1px 0px 1px";
-			metric_col.append(metric_button);
+			if (field != "date") {
+				const metric_button = document.createElement("button");
+				metric_button.className = "btn btn-light metric_button";
+				metric_button.id = `${file.name}-${field}`;
+				metric_button.innerHTML = field;
+				metric_button.style.margin = "5px 1px 0px 1px";
+				metric_col.append(metric_button);
+			}
 		});
 
 		metrics.append(metric_col);
@@ -161,7 +165,10 @@ function addFile(file, file_status) {
 	file_list_container.append(file_row);
 }
 
-
+/*
+	This function is fired when the upload is completed in order to change the UI
+	of the file list object. 
+*/
 function uploadCompleted(file) {
 	const progress_bar = document.getElementById(`${file}-progress`);
 	progress_bar.style.width = '0%';
@@ -172,6 +179,9 @@ function uploadCompleted(file) {
 	file_row.style.borderColor = "#ffcc66";
 }
 
+/*
+	I think we might not need this function as we are just reloading the page. 
+*/
 function analysisCompleted(file) {
 	document.getElementById(`${file}-main`).remove();
 	addFile(file, "PROCESSED.");

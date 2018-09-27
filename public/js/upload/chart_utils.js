@@ -20,7 +20,7 @@ function removeMetric(metric, id) {
 	//document.getElementById("chart-container").hidden = false;
 	const file_name = id.split(`-${metric}`)[0];
 	all_selected_metrics[file_name].delete(metric);
-	console.log(all_selected_metrics[file_name].size);
+	//console.log(all_selected_metrics[file_name].size);
 	remove_line(metric, file_name);
 	document.getElementById(`${file_name}-${metric}`).style.backgroundColor= '';
 	if (all_selected_metrics[file_name].size === 0){
@@ -28,7 +28,6 @@ function removeMetric(metric, id) {
 		delete all_selected_metrics[file_name];
 		if (selected_files.size === 0) document.getElementById("chart-container").hidden = true;
 	}
-
-	console.log(all_selected_metrics);
-	console.log(selected_files);
+	// console.log(all_selected_metrics);
+	// console.log(selected_files);
 }

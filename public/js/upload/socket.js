@@ -6,17 +6,17 @@ var socket = io(baseUrl, {
 });
 
 const lambda_done_socket_name = `lambda_${id}`;
+console.log(lambda_done_socket_name);
 socket.on(lambda_done_socket_name, function (file_name) {
+	console.log("LMAMDA");
+	console.log(file_name);
 	queue[file_name]["done"] += 1;
-	const width = queue[file_name]["done"]/queue[file_name]["need"];
-	document.getElementById(`${file.name}-progress`).style.width = `${width}%`;
+	const width = (queue[file_name]["done"]/queue[file_name]["need"]) * 100;
+	console.log(document.getElementById(`${file_name}-progress`));
+	document.getElementById(`${file_name}-progress`).style.width = `${width}%`;
 });
 
 const calculation_done_socket_name = `calculation_done_${id}`;
 socket.on(calculation_done_socket_name, function () {
-    $('#metric-bar').css('width', 100 + "%");
-    $('#new_data_alert').show();
-    $('html, body').animate({ scrollTop: $('#new_data_alert').offset().top }, 'slow');
-    $('#metric-status').text("Analyzed.")
-    document.getElementById("file-upload-btn").disabled = false;
+	location.reload();
 });

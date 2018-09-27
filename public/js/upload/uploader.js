@@ -76,8 +76,11 @@ $(document).ready(function() {
               // update the Bootstrap progress bar with the new percentage
               //$('#upload-bar').text(percentComplete + '%');
               //$(`#${to_upload[0]}-progress`).width(percentComplete + '%');
-              document.getElementById(`${to_upload[0]}-progress`).style.width = percentComplete + '%';
 
+              to_upload.forEach((file) => {
+                document.getElementById(`${file}-progress`).style.width = percentComplete/to_upload.length + '%';
+              });
+              
               // console.log(formData);
               // console.log("is in here");
               // console.log(`#${to_upload[0]}-progress`);
@@ -86,8 +89,9 @@ $(document).ready(function() {
 
               // once the upload reaches 100%, set the progress bar text to done
               if (percentComplete === 100) {
-                $('#upload-bar').html('Done');
-                $('#metric-status').text("Uploaded")
+                to_upload.forEach((file) => {
+                  uploadCompleted(file);
+                });
                 document.getElementById("file-upload-btn").disabled = false;
                 //document.getElementById("uploadForm").reset();
               }

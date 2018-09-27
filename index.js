@@ -163,6 +163,7 @@ app.post('/traces/:traceId', function(req, res){
 					"size": file.size,
 					"path": `./uploads/${req.params.traceId}/${file.name}/${file.name}`
 				};
+				console.log(file_object);
 
 				// const aws = require("./library/aws");
 		  //       const add_file_promise = aws.add_file(file_object, req.params.traceId, io);

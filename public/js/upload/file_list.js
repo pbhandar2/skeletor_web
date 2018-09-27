@@ -59,6 +59,7 @@ function addFile(file, file_status) {
 
 	const file_row = document.createElement("div");
 	file_row.className = "row card";
+	file_row.id = `${file.name}-main`;
 
 	// the first row of the file_row will contain name and the progress bar
 	const wrapper = document.createElement("div");
@@ -120,17 +121,16 @@ function addFile(file, file_status) {
 
 		metrics.append(metric_col);
 	} else if (file_status == "UPLOADING.") {
-
 		file_row.style.borderColor = "#3399ff";
-
-		// the second row will contain list of metrics
-		metrics = document.createElement("div");
-		metrics.className="row";
-
 		progress_bar.style.width = "0%";
 		progress_bar.style.backgroundColor = "#3399ff";
 		progress_bar_status.style.color = "black";
 
+	} else {
+		file_row.style.borderColor = "#ffcc66";
+		progress_bar.style.width = "0%";
+		progress_bar.style.backgroundColor = "#ffcc66";
+		progress_bar_status.style.color = "black";
 	}
 
 	// append in order of smaller element moving to their parent elements
@@ -149,7 +149,15 @@ function addFile(file, file_status) {
 }
 
 
-
+function uploadCompleted(file) {
+	const progress_bar = document.getElementById(`${file}-progress`);
+	progress_bar.style.width = '0%';
+	progress_bar.style.backgroundColor = "#ffcc66";
+	const progress_div_status = progress_bar.childNodes[0];
+	progress_div_status.innerHTML = "ANALYZING.";
+	const file_row = document.getElementById(`${file}-main`);
+	file_row.style.borderColor = "#ffcc66";
+}
 
 
 

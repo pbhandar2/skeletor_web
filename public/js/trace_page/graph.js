@@ -126,7 +126,7 @@ function line_count() {
 }
 
 function append_line(file_name, metric) {
-  console.log(`appending line for ${file_name} and the metric is ${metric}`);
+  //console.log(`appending line for ${file_name} and the metric is ${metric}`);
   const local_y_max = metric_value_range[file_name][metric];
   if (local_y_max > global_y_max) {
     global_y_max = local_y_max;
@@ -178,7 +178,7 @@ function getXAxisRange() {
 function getYAxisRange() {
   let local_y_max = 0;
   for (var file_name in all_selected_metrics) {
-    console.log(all_selected_metrics);
+    //console.log(all_selected_metrics);
     if (all_selected_metrics[file_name]) {
       all_selected_metrics[file_name].forEach((metric) => {
         if (metric_value_range[file_name][metric] > local_y_max) {
@@ -293,7 +293,7 @@ function rescale_graph() {
             .attr("d", line2);
         lines1[selection][metric] = line;
         lines2[selection][metric] = line2;
-        console.log(document.getElementById(`${selection}-${metric}`));
+        //console.log(document.getElementById(`${selection}-${metric}`));
         //document.getElementById(`${selection}-${metric}`).style.color= colorScale(getColorIndex(selection, metric));
         document.getElementById(`${selection}-${metric}`).style.backgroundColor= colorScale(getColorIndex(selection, metric));
       });

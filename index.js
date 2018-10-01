@@ -409,8 +409,11 @@ app.post('/deletetrace/:traceId', (req, res) => {
 app.post('/toggledisplay/:traceId/:toggleValue', (req, res) => {
 
 	// getting the params
-	const toggleValue = req.params.toggleValue;
+	console.log(req.params.toggleValue)
+	const toggleValue = (req.params.toggleValue == "true" || req.params.toggleValue == true) ? true : false 
 	const traceId = req.params.traceId;
+
+	console.log(toggleValue)
 
 	const params = {
 		Key: {

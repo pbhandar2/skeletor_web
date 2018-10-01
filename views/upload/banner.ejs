@@ -18,7 +18,7 @@
 				<button type="button" class="btn btn-danger content-text float-right" id="deleteTrace">Delete</button>
 			</div>
 			<div class="row button-container">
-				<% if(trace.display == "true"){ %>
+				<% if(trace.display == "true" || trace.display){ %>
 					<button type="button" class="btn btn-warning float-right" id="toggleDisplay">Make Public</button>
 				<% } else{ %>
 					<button type="button" class="btn btn-warning float-right" id="toggleDisplay">Make Private</button>

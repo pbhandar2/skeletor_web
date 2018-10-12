@@ -144,16 +144,21 @@ app.post('/traces/:traceId', function(req, res){
 	// specify that we want to allow the user to upload multiple files in a single request
 	form.multiples = true;
 	form.maxFileSize = 2097314290000;
+
 	const start = moment();
+	const timestamp = new Date().valueOf();
+
+	console.log("The timestamp is " + timestamp);
 
 	// every time a file has been uploaded successfully,
 	// rename it to it's orignal name
 	form.on('file', function(field, file) {
-		//console.log(file.path);
+		console.log('/uploads/' + req.params.traceId + "/" + file.name + "_" + timestamp);
 		// store all uploads in the /uploads directory
-		form.uploadDir = path.join(__dirname, '/uploads/' + req.params.traceId + "/" + file.name);
-		fs.mkdirSync(`./uploads/${req.params.traceId}/${file.name}`);
-		//console.log("dir created");
+		form.uploadDir = path.join(__dirname, '/uploads/' + req.params.traceId + "/" + file.name + "_" + timestamp);
+		console.log(`./uploads/${req.params.traceId}/${file.name}_${timestamp}`);
+		fs.mkdirSync(`./uploads/${req.params.traceId}/${file.name}_${timestamp}`);
+		console.log("dir created");
 		// move the file to the proper directory
 		fs.rename(file.path, path.join(form.uploadDir, file.name), (error) => {
 			if (error) console.log("An error occured while renaming and moving the file." + error);
@@ -161,14 +166,15 @@ app.post('/traces/:traceId', function(req, res){
 				const file_object = {
 					"name": file.name,
 					"size": file.size,
-					"path": `./uploads/${req.params.traceId}/${file.name}/${file.name}`
+					"timestamp": timestamp,
+					"path": `/uploads/${req.params.traceId}/${file.name}_${timestamp}/${file.name}`
 				};
 
 				const aws = require("./library/aws");
 		        const add_file_promise = aws.add_file(file_object, req.params.traceId, io);
 		        add_file_promise.then((flag) => {
 		            const traceProcessor = require("./library/traceProcessor");
-		            const process_trace_file_promise = traceProcessor.processTraceFile(file.name, req.params.traceId, io);
+		            const process_trace_file_promise = traceProcessor.processTraceFile(file_object, req.params.traceId, io);
 			        process_trace_file_promise.then((flag) => {
 			            let end = moment();
 			            let diff = end.diff(start);
@@ -408,12 +414,8 @@ app.post('/deletetrace/:traceId', (req, res) => {
 
 app.post('/toggledisplay/:traceId/:toggleValue', (req, res) => {
 
-	// getting the params
-	console.log(req.params.toggleValue)
 	const toggleValue = (req.params.toggleValue == "true" || req.params.toggleValue == true) ? true : false 
 	const traceId = req.params.traceId;
-
-	console.log(toggleValue)
 
 	const params = {
 		Key: {
@@ -427,16 +429,12 @@ app.post('/toggledisplay/:traceId/:toggleValue', (req, res) => {
 		TableName: "traces"
 	}
 
-
 	ddb.update(params, function(err, data) {
-		console.log(err);
-		console.log(data);
 		if (err) res.send(err)
 		else res.send("done")
 	});
 
 });
-
 
 const traceProcessor = require("./library/traceProcessor");
 

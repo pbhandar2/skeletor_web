@@ -55,11 +55,18 @@ async function get_trace_start_date(file_loc) {
 	});
 }
 
-async function process_trace(file_name, id, io) {
+async function process_trace(file_object, id, io) {
+
+	const file_name = file_object.name;
+	const path = file_object.path;
+	const timestamp = file_object.timestamp;
+	console.log(`inside process trace`);
 
 	return await new Promise((resolve, reject) => {
 		try {
-			const get_start_date_promise = get_trace_start_date(`${app_dir}/uploads/${id}/${file_name}/${file_name}`);
+			const get_start_date_promise = get_trace_start_date(`${app_dir}/uploads/${id}/${file_name}_${timestamp}/${file_name}`);
+
+
 
 			get_start_date_promise.then((start_date_string) => {
 
@@ -67,11 +74,13 @@ async function process_trace(file_name, id, io) {
 				let file_count = 0;
 				let file_completed = 0;
 				let done = 0;
-				let output_file_name = `${app_dir}/uploads/${id}/${file_name}/${file_count}`;
+				let output_file_name = `${app_dir}/uploads/${id}/${file_name}_${timestamp}/${file_count}`;
 				let outStream = fs.createWriteStream(output_file_name);
 
+				console.log(`The start date is ${start_date_string}`);
+
 				// read the gz file and pipe the output to gunzip which gives the extracted output 
-				var gzip_read_stream = fs.createReadStream(`${app_dir}/uploads/${id}/${file_name}/${file_name}`)
+				var gzip_read_stream = fs.createReadStream(`${app_dir}/uploads/${id}/${file_name}_${timestamp}/${file_name}`)
 					.pipe(zlib.Gunzip());
 
 				// pipe the extracted files stream to readline to read it line by line
@@ -85,10 +94,10 @@ async function process_trace(file_name, id, io) {
 					outStream.write(line + '\n');
 					if (line_count > 400000) {
 						outStream.end();
-						const upload_file_promise = upload_file(output_file_name, `${id}/${file_name}/parts/${file_count}`);
+						const upload_file_promise = upload_file(output_file_name, `${id}/${file_name}_${timestamp}/parts/${file_count}`);
 						line_count = 0;
 						file_count++;
-						output_file_name = `${app_dir}/uploads/${id}/${file_name}/` + file_count;
+						output_file_name = `${app_dir}/uploads/${id}/${file_name}_${timestamp}/` + file_count;
 						outStream = fs.createWriteStream(output_file_name);
 						
 						upload_file_promise.then((file_loc) => {
@@ -98,17 +107,20 @@ async function process_trace(file_name, id, io) {
 							const file_number = split_file_name[split_file_name.length-1];
 
 							const payload = {
-							  "key": `${id}/${file_name}/parts/${file_number}`,
+							  "key": `${id}/${file_name}_${timestamp}/parts/${file_number}`,
 							  "id": id,
 							  "file": file_name,
 							  "part": `${file_number}`,
 							  "start_date": start_date_string,
-							  "date": start_date_string
+							  "date": start_date_string,
+							  "timestamp": timestamp
 							};
 
-							const lambda_promise = call_lambda(payload, "arn:aws:lambda:us-east-2:722606526443:function:process_gpfs_trace");
+							const lambda_promise = call_lambda(payload, "arn:aws:lambda:us-east-2:722606526443:function:GPFS_IBM_process");
+							//const lambda_promise = call_lambda(payload, "arn:aws:lambda:us-east-2:722606526443:function:process_gpfs_trace");
 							lambda_promise.then((flag) => {
 								file_completed++;
+								
 								if (io) {
 									console.log(`io is called so calling lambda_${id}`);
 									io.emit(`lambda_${id}`, file_name);
@@ -118,7 +130,8 @@ async function process_trace(file_name, id, io) {
 									console.log("COMPLETED UPLOADING ALL FILE!");
 									const get_final_json_payload = {
 										"id": id,
-										"file": file_name
+										"file": file_name,
+										"timestamp": timestamp
 									}
 									const get_final_json_promise = call_lambda(get_final_json_payload, "arn:aws:lambda:us-east-2:722606526443:function:get_file_metrics");
 									get_final_json_promise.then((flag) => {
@@ -199,5 +212,7 @@ async function call_lambda(payload, function_arn) {
 	});
 
 }
+
+
 
 module.exports = { get_trace_start_date, process_trace };

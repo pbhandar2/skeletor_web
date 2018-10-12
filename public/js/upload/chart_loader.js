@@ -82,9 +82,10 @@ function loadData(file_name) {
 
 	const file_object = get_file_object(file_name);
 	const fields = file_object.fields;
+	const timestamp = timestamp;
 	overall_select.push(fields);
 
-	const url = `https://s3.us-east-2.amazonaws.com/fstraces/${id}/${file_name}/final.json`;
+	const url = `https://s3.us-east-2.amazonaws.com/fstraces/${id}/${file_name}_${timestamp}/final.json`;
 	d3.json(url, function (error, d) {
 
 		const local_data = [];

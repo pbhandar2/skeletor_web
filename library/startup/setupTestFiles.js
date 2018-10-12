@@ -7,7 +7,8 @@ const s3 = require(`${appDir}/modules/aws.js`).s3();
 function check() {
 	const testFilesPath = "./uploads/test/";
 	for (let i = 0; i < testFiles.length; i++) {
-		if (!fs.existsSync(`${testFilesPath}${testFiles[i]}`)) {
+		//console.log(`${testFilesPath}${testFiles[i]}_12345/${testFiles[i]}`);
+		if (!fs.existsSync(`${testFilesPath}${testFiles[i]}_12345/${testFiles[i]}`)) {
 			return 0;
 		}
 	}

@@ -20,7 +20,7 @@ describe('TraceProcessor', function() {
 
 	describe('#getTraceStartDate()', function() {
 	    it('should not return null for the file t1.gz', function(done) {
-	    	const start_date_promise = traceProcessor.getTraceStartDate(`${appDir}/uploads/test/t1.gz`);
+	    	const start_date_promise = traceProcessor.getTraceStartDate(`${appDir}/uploads/test/t1.gz_12345/t1.gz`);
 	    	start_date_promise.then((date) => {
 	    		console.log(date);
 	    		assert.notEqual(date, 0);
@@ -30,7 +30,7 @@ describe('TraceProcessor', function() {
 	    });
 
 	    it('should not return null for the file t2.gz', function(done) {
-	    	const start_date_promise = traceProcessor.getTraceStartDate(`${appDir}/uploads/test/t2.gz`);
+	    	const start_date_promise = traceProcessor.getTraceStartDate(`${appDir}/uploads/test/t2.gz_12345/t2.gz`);
 	    	start_date_promise.then((date) => {
 	    		console.log(date);
 	    		assert.notEqual(date, 0);
@@ -40,7 +40,7 @@ describe('TraceProcessor', function() {
 	    });
 
 	    it('should return null for the file tx.gz', function(done) {
-	    	const start_date_promise = traceProcessor.getTraceStartDate(`${appDir}/uploads/test/tx.gz`);
+	    	const start_date_promise = traceProcessor.getTraceStartDate(`${appDir}/uploads/test/tx.gz_12345/tx.gz`);
 	    	start_date_promise.then((date) => {
 	    		assert.equal(date, 0);
 	    	}).catch((err) => {
@@ -77,7 +77,8 @@ describe('#createTrace()', function() {
     	const file = {
     		name: "t1.gz",
     		size: 421592945,
-    		path: "../uploads/test/t1.gz"
+            timestamp: 12345,
+    		path: "/uploads/test/t1.gz_12345/t1.gz"
     	}
 
     	const add_file_promise = aws.add_file(file, "test");
@@ -92,7 +93,8 @@ describe('#createTrace()', function() {
         const file = {
             name: "t2.gz",
             size: 242079728,
-            path: "../uploads/test/t2.gz"
+            timestamp: 12345,
+            path: "/uploads/test/t2.gz_12345/t2.gz"
         }
 
         const add_file_promise = aws.add_file(file, "test");
@@ -103,19 +105,25 @@ describe('#createTrace()', function() {
         }).then(done, done);
     });
 
-    // it('should return 1 if the trace is deleted', function(done) {
-    // 	const remove_trace_promise = aws.remove_trace("0");
-    // 	remove_trace_promise.then((flag) => {
-    // 		assert.equal(flag, 1);
-    // 	}).catch((err) => {
-    // 		console.log(err);
-    // 	}).then(done, done);
-    // });
+//     // it('should return 1 if the trace is deleted', function(done) {
+//     // 	const remove_trace_promise = aws.remove_trace("0");
+//     // 	remove_trace_promise.then((flag) => {
+//     // 		assert.equal(flag, 1);
+//     // 	}).catch((err) => {
+//     // 		console.log(err);
+//     // 	}).then(done, done);
+//     // });
 
     it('should return 1 if the trace is sucessfully processed', function(done) {
     	this.timeout(0);
     	const file_name = 't1.gz';
-    	const process_trace_file_promise = traceProcessor.processTraceFile(file_name, "test");
+        const file = {
+            name: "t1.gz",
+            size: 421592945,
+            timestamp: 12345,
+            path: "/uploads/test/t1.gz_12345/t1.gz"
+        }
+    	const process_trace_file_promise = traceProcessor.processTraceFile(file, "test");
     	process_trace_file_promise.then((flag) => {
     		assert.equal(flag, 1);
     	}).catch((err) => {
@@ -123,16 +131,16 @@ describe('#createTrace()', function() {
     	}).then(done, done);
     });
 
-    it('should return 1 if the trace is sucessfully broken', function(done) {
-        this.timeout(0);
-        const file_name = 't2.gz';
-        const process_trace_file_promise = traceProcessor.processTraceFile(file_name, "test");
-        process_trace_file_promise.then((flag) => {
-            assert.equal(flag, 1);
-        }).catch((err) => {
-            console.log(err);
-        }).then(done, done);
-    });
+    // it('should return 1 if the trace is sucessfully broken', function(done) {
+    //     this.timeout(0);
+    //     const file_name = 't2.gz';
+    //     const process_trace_file_promise = traceProcessor.processTraceFile(file, "test");
+    //     process_trace_file_promise.then((flag) => {
+    //         assert.equal(flag, 1);
+    //     }).catch((err) => {
+    //         console.log(err);
+    //     }).then(done, done);
+    // });
 
 });
 

@@ -1,6 +1,6 @@
-// data is a dict which holds the data for each file that is loaded where the 
-// key is the name of the file 
-let data = {}; 
+// data is a dict which holds the data for each file that is loaded where the
+// key is the name of the file
+let data = {};
 
 //const colorScale = d3.scaleSequential(d3.interpolateWarm).domain([0, 20]);
 let colors = generateRandomColors(getTotalMetrics());
@@ -12,7 +12,7 @@ function colorScale(i) {
 // of a file so that we know what to scale the y-axis to when a metric is added
 let metric_value_range = {};
 
-// tracking the max value to change the y-axis when needed 
+// tracking the max value to change the y-axis when needed
 let global_y_max = 0;
 
 // function that parses the data to one that d3.js can use
@@ -29,8 +29,8 @@ let line_array = [];
     id: the trace id to which the file belongs
     file_name: the name of the file
 */
-function loadData(id, file_name, metric) {
-  const url = `https://s3.us-east-2.amazonaws.com/fstraces/${id}/${file_name}/final.json`;
+function loadData(id, file_name, metric, timestamp) {
+  const url = `https://s3.us-east-2.amazonaws.com/fstraces/${id}/${file_name}_${timestamp}/final.json`;
   const file_object = getFileObject(file_name);
   const fields = file_object.fields;
 
@@ -38,6 +38,13 @@ function loadData(id, file_name, metric) {
     if (error) throw error;
     const local_data = [];
     const local_metric_value_range = {};
+
+    // console.log(moment(d[0].date, 'YYYY-MM-DD-HH-mm-ss').format('YYYY-MM-DD-HH-mm-ss'))
+    // console.log(moment(new Date(d[0].date)).format("YYYY"))
+    // console.log(d[0].date)
+    start_time = moment(d[0].date, 'YYYY-MM-DD-HH-mm-ss').format('YYYY-MM-DD-HH-mm-ss');
+
+    //start_time = parseDate(d[0].date)
 
     d.forEach(function(data_object) {
       let to_push = {
@@ -50,7 +57,9 @@ function loadData(id, file_name, metric) {
         to_push[select_value] = (data_object[select_value]) ? current_value : 0;
       });
       local_data.push(to_push);
+      end_time = moment(data_object.date, 'YYYY-MM-DD-HH-mm-ss').format('YYYY-MM-DD-HH-mm-ss');
     });
+
 
     data[file_name] = local_data;
     metric_value_range[file_name] = local_metric_value_range;
@@ -67,18 +76,18 @@ function getFileObject(file_name) {
 }
 
 function add_line(file_name, metric) {
-  
+
 
   // setting up the graph if it has not been set
   if (!document.getElementById("x-axis")) {
     setUpGraph();
-  } 
+  }
 
   rescale_graph();
 
   // const local_data = data[file_name];
 
-  // // now check if x-axis or y-axis needs rescaling 
+  // // now check if x-axis or y-axis needs rescaling
   // const local_y_max = metric_value_range[file_name][metric];
   // const x_axis_range = getXAxisRange();
   // const current_x_axis = x.domain();
@@ -257,7 +266,7 @@ function rescale_graph() {
     .attr("id", "x-axis")
     .attr("transform", "translate(0," + height + ")")
     .call(xAxis);
-  
+
   y.domain(getYAxisRange());
   y2.domain(y.domain());
   focus.append("g")
@@ -310,8 +319,12 @@ var zoom = d3.zoom()
     .scaleExtent([1, Infinity])
     .translateExtent([[0, 0], [width, height]])
     .extent([[0, 0], [width, height]])
-    .on("zoom", zoomed);
-    
+    .on("zoom", function() {
+      // console.log(id)
+      // console.log(files)
+      zoomed()
+    });
+
 function brushed() {
   if (d3.event.sourceEvent && d3.event.sourceEvent.type === "zoom") return; // ignore brush-by-zoom
   var s = d3.event.selection || x2.range();
@@ -344,6 +357,12 @@ function zoomed() {
   if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
   var t = d3.event.transform;
   x.domain(t.rescaleX(x2).domain());
+  let rescale = t.rescaleX(x2).domain()
+  start_time = rescale[0]
+  end_time = rescale[1]
+  // console.log(rescale)
+  // console.log("HERE IN RESCALE")
+  io_size_hist_init()
   //console.log(all_selected_metrics);
   //console.log(lines1);
 

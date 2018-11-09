@@ -14,19 +14,19 @@ $(document).ready(function() {
 });
 
 /*
-	This function renders the containers that they need for file list 
+	This function renders the containers that they need for file list
 */
 function renderFileListContainer() {
 
 	// this is done to maintain the bootstrap consistency I cannot have
-	// a row inside a row I need to have a row then a column and then I 
+	// a row inside a row I need to have a row then a column and then I
 	// can again have rows inside the column
 	const main_row = document.createElement("div");
 	main_row.className = "row card";
 	const main_col = document.createElement("div");
 	main_col.className = "col-xs-12";
 	main_col.id = "file-list-container";
-	
+
 	// creating the title text
 	const title_text = document.createElement("p");
 	title_text.className = "title-text";
@@ -37,7 +37,7 @@ function renderFileListContainer() {
 
 	// attaching it to the main container
 	// the getelements function returns an array and here I am assuming
-	// that there is no other element by the class name "container" which 
+	// that there is no other element by the class name "container" which
 	// is a fair assumption
 	document.getElementsByClassName("file-list-wrapper")[0].append(main_row);
 }
@@ -55,7 +55,7 @@ function renderFileList(files) {
 
 /*
 	This function iterates through the queue and adds a queue file list type
-	to the file list container. 
+	to the file list container.
 */
 
 function renderQueueList(files) {
@@ -81,8 +81,8 @@ function addFile(file, file_status) {
 	wrapper.className="col-xs-12";
 	const file_name_progress = document.createElement("div");
 	file_name_progress.className="row";
-	
-	// creating the file name portion 
+
+	// creating the file name portion
 	const file_name_col = document.createElement("div");
 	file_name_col.className = "col-xs-3";
 	const file_name = document.createElement("p");
@@ -121,7 +121,7 @@ function addFile(file, file_status) {
 		progress_bar.style.backgroundColor = "green";
 		progress_bar_status.style.color = "white";
 
-		// now need to add metric buttons 
+		// now need to add metric buttons
 		metric_col = document.createElement("div");
 		metric_col.className = "col-xs-12";
 
@@ -129,6 +129,18 @@ function addFile(file, file_status) {
 			if (field != "date") {
 				const metric_button = document.createElement("button");
 				metric_button.className = "btn btn-light metric_button";
+				metric_button.id = `${file.name}-${field}`;
+				metric_button.innerHTML = field;
+				metric_button.style.margin = "5px 1px 0px 1px";
+				metric_col.append(metric_button);
+			}
+		});
+
+		other_fields=["IO_SIZE_DIST"]
+		other_fields.forEach((field) => {
+			if (field != "date") {
+				const metric_button = document.createElement("button");
+				metric_button.className = "btn btn-light io_size_dist_button";
 				metric_button.id = `${file.name}-${field}`;
 				metric_button.innerHTML = field;
 				metric_button.style.margin = "5px 1px 0px 1px";
@@ -155,7 +167,7 @@ function addFile(file, file_status) {
 	file_name_col.append(file_name);
 	progress_bar_col.append(progress_bar);
 
-	// adding the file name and progress container together 
+	// adding the file name and progress container together
 	file_name_progress.append(file_name_col);
 	file_name_progress.append(progress_bar_col);
 	wrapper.append(file_name_progress);
@@ -167,7 +179,7 @@ function addFile(file, file_status) {
 
 /*
 	This function is fired when the upload is completed in order to change the UI
-	of the file list object. 
+	of the file list object.
 */
 function uploadCompleted(file) {
 	const progress_bar = document.getElementById(`${file}-progress`);
@@ -180,12 +192,9 @@ function uploadCompleted(file) {
 }
 
 /*
-	I think we might not need this function as we are just reloading the page. 
+	I think we might not need this function as we are just reloading the page.
 */
 function analysisCompleted(file) {
 	document.getElementById(`${file}-main`).remove();
 	addFile(file, "PROCESSED.");
 }
-
-
-

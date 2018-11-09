@@ -57,6 +57,9 @@ async function get_trace_start_date(file_loc) {
 
 async function process_trace(file_object, id, io) {
 
+	console.log("THIS IS THE FILE OBJECT.")
+	console.log(file_object)
+
 	const file_name = file_object.name;
 	const path = file_object.path;
 	const timestamp = file_object.timestamp;
@@ -79,7 +82,7 @@ async function process_trace(file_object, id, io) {
 
 				console.log(`The start date is ${start_date_string}`);
 
-				// read the gz file and pipe the output to gunzip which gives the extracted output 
+				// read the gz file and pipe the output to gunzip which gives the extracted output
 				var gzip_read_stream = fs.createReadStream(`${app_dir}/uploads/${id}/${file_name}_${timestamp}/${file_name}`)
 					.pipe(zlib.Gunzip());
 
@@ -88,7 +91,7 @@ async function process_trace(file_object, id, io) {
 				    input: gzip_read_stream
 				});
 
-				// each line is placed on its proper part file 
+				// each line is placed on its proper part file
 				lineReader.on('line', function(line) {
 					line_count++;
 					outStream.write(line + '\n');
@@ -99,7 +102,7 @@ async function process_trace(file_object, id, io) {
 						file_count++;
 						output_file_name = `${app_dir}/uploads/${id}/${file_name}_${timestamp}/` + file_count;
 						outStream = fs.createWriteStream(output_file_name);
-						
+
 						upload_file_promise.then((file_loc) => {
 
 							fs.unlinkSync(file_loc);
@@ -120,7 +123,7 @@ async function process_trace(file_object, id, io) {
 							//const lambda_promise = call_lambda(payload, "arn:aws:lambda:us-east-2:722606526443:function:process_gpfs_trace");
 							lambda_promise.then((flag) => {
 								file_completed++;
-								
+
 								if (io) {
 									console.log(`io is called so calling lambda_${id}`);
 									io.emit(`lambda_${id}`, file_name);
@@ -152,7 +155,7 @@ async function process_trace(file_object, id, io) {
 							console.log(`the error is from upload file`);
 							console.log(err);
 						});
-						
+
 					}
 				});
 

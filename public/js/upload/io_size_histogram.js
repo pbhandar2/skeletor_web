@@ -4,21 +4,9 @@ let io_size_hist_data_files = []
 let data_dict = {}
 
 const io_size_hist_svg = d3.select("#svg2"),
-	io_hist_margin = {top: 0, right: 20, bottom: 20, left: 20},
+	io_hist_margin = {top: 0, right: 20, bottom: 30, left: 20},
 	io_hist_width =+ io_size_hist_svg.attr("width") - io_hist_margin.left - io_hist_margin.right,
 	io_hist_height =+ io_size_hist_svg.attr("height") - io_hist_margin.top - io_hist_margin.bottom
-
-io_hist_data = [1,2,3,4,5,6]
-// const bar_width = io_hist_width/io_hist_data.length
-// console.log(bar_width)
-
-//const io_hist_y = d3.scaleLinear().range([io_hist_height, 0])
-// io_hist_y.domain([0, d3.max(io_hist_data)])
-// const io_hist_y_axis = d3.axisLeft(io_hist_y).ticks(2)
-
-// const io_hist_x = d3.scaleBand().range([0, io_hist_width]).paddingOuter(0.1)
-// io_hist_x.domain(io_hist_data)
-// const io_hist_x_axis = d3.axisBottom(d3.scaleBand().domain(['Apples','Oranges','Pears','Plums','Banana','Grapes']).range([0, io_hist_width]))
 
 $(document).ready(function() {
   /*

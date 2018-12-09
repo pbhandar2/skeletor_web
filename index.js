@@ -1,6 +1,5 @@
 const http = require('http');
 const https = require('https');
-
 var express = require('express');
 var app = express();
 var path = require('path');
@@ -701,5 +700,10 @@ app.post('/toggledisplay/:traceId/:toggleValue', (req, res) => {
 // app.get("/nodata", (req, res) => {
 // 	res.render
 // });
+
+
+app.get("/testing", (req, res) => {
+	res.render("skeletor")
+});
 
 

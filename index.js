@@ -105,7 +105,7 @@ app.get('/traces', (req, res) => {
 			},
 			FilterExpression: "display = :b",
 			TableName: "traces"
-		}
+		} 
 		ddb.scan(params, function(err, data) {
 			if (err) console.log(err)
 			else {

@@ -9,7 +9,8 @@ $(document).ready(function() {
     }
 
     // disabling the file upload button
-    document.getElementById("file-upload-btn").disabled = true;
+    //document.getElementById("file-upload-btn").disabled = true;
+    $("#file-upload-btn").prop("disabled", true)
 
     // tracking the time it took for the file to upload
     let start = moment();

@@ -1,4 +1,6 @@
+// Hiding the containers in the beginning 
 document.getElementById("chart-container").hidden = true;
+
 
 console.log(trace);
 

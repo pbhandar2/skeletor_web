@@ -13,10 +13,25 @@
                     </div>
                 </div>
             </div>
+            <div class="row card" id="histogram-container">
+                <div class="col-xs-12">
+                    <div class="row" id="chart-main">
+                        <svg id="svg2" width="1100" height="500"></svg>
+                    </div>
+                </div>
+            </div>
+            <div class="row card" id="write-histogram-container">
+                <div class="col-xs-12">
+                    <div class="row" id="chart-main">
+                        <svg id="svg3" width="1100" height="500"></svg>
+                    </div>
+                </div>
+            </div>
         </div>
         <%- include("shared/footer") %>
         <script src="/js/upload/index.js"></script>
         <script src="/js/trace_page/basic_graph_setup.js"></script>
         <script src="/js/trace_page/graph.js"></script>
+        <script src="/js/upload/histogram_write_size.js"></script>
     </body>
 </html>

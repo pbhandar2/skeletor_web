@@ -43,6 +43,8 @@ function zoomed() {
 	if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
 	var t = d3.event.transform;
 	x.domain(t.rescaleX(x2).domain());
+	console.log(t.rescaleX(x2).domain());
+	console.log("IN zommed.");
 	// let i = 0;
 	// selected_metrics_values.forEach(function(val) {
 	// 	const id = "#" + val + "_main";

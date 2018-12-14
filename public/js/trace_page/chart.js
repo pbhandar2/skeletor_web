@@ -299,6 +299,7 @@ function zoomed() {
 	if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
 	var t = d3.event.transform;
 	x.domain(t.rescaleX(x2).domain());
+	console.log(t.rescaleX(x2).domain());
 	let i = 0;
 	selected_metrics_values.forEach(function(val) {
 		const id = "#" + val + "_main";
@@ -307,6 +308,7 @@ function zoomed() {
 		Line_chart.select(id).attr("d", line);
 	});
 	focus.select(".axis--x").call(xAxis);
+	console.log(x.range().map(t.invertX, t));
 	context.select(".brush").call(brush.move, x.range().map(t.invertX, t));
 }
 

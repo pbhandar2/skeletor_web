@@ -344,6 +344,8 @@ function zoomed() {
   if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return; // ignore zoom-by-brush
   var t = d3.event.transform;
   x.domain(t.rescaleX(x2).domain());
+  console.log(t.rescaleX(x2).domain());
+  console.log("this is x domain set");
   //console.log(all_selected_metrics);
   //console.log(lines1);
 
@@ -397,6 +399,8 @@ function zoomed() {
   }
   focus.select(".axis--x").call(xAxis);
   context.select(".brush").call(brush.move, x.range().map(t.invertX, t));
+  console.log(x.range().map(t.invertX, t));
+  console.log("this is the brush.");
 }
 
 function getTotalMetrics() {

@@ -20,7 +20,7 @@ var clip = svg.append("defs").append("svg:clipPath")
     .attr("width", width)
     .attr("height", height)
     .attr("x", 0)
-    .attr("y", 0); 
+    .attr("y", 0);
 
 var Line_chart = svg.append("g")
     .attr("class", "focus")
@@ -35,4 +35,3 @@ var focus = svg.append("g")
 var context = svg.append("g")
     .attr("class", "context")
     .attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
-

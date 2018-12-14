@@ -136,7 +136,7 @@ app.get('/traces/:traceId', (req, res) => {
 app.post('/traces/:traceId', function(req, res){
 
 	// create an incoming form object
-	var form = new formidable.IncomingForm({ 
+	var form = new formidable.IncomingForm({
 	  uploadDir: __dirname + '/uploads',  // don't forget the __dirname here
 	  keepExtensions: true
 	});
@@ -153,12 +153,12 @@ app.post('/traces/:traceId', function(req, res){
 	// every time a file has been uploaded successfully,
 	// rename it to it's orignal name
 	form.on('file', function(field, file) {
-		console.log('/uploads/' + req.params.traceId + "/" + file.name + "_" + timestamp);
+		//console.log('/uploads/' + req.params.traceId + "/" + file.name + "_" + timestamp);
 		// store all uploads in the /uploads directory
 		form.uploadDir = path.join(__dirname, '/uploads/' + req.params.traceId + "/" + file.name + "_" + timestamp);
-		console.log(`./uploads/${req.params.traceId}/${file.name}_${timestamp}`);
+		//console.log(`./uploads/${req.params.traceId}/${file.name}_${timestamp}`);
 		fs.mkdirSync(`./uploads/${req.params.traceId}/${file.name}_${timestamp}`);
-		console.log("dir created");
+		//console.log("dir created");
 		// move the file to the proper directory
 		fs.rename(file.path, path.join(form.uploadDir, file.name), (error) => {
 			if (error) console.log("An error occured while renaming and moving the file." + error);
@@ -169,6 +169,9 @@ app.post('/traces/:traceId', function(req, res){
 					"timestamp": timestamp,
 					"path": `/uploads/${req.params.traceId}/${file.name}_${timestamp}/${file.name}`
 				};
+
+        // console.log("THIS IS THE FILE OBJECT.")
+      	// console.log(file_object)
 
 				const aws = require("./library/aws");
 		        const add_file_promise = aws.add_file(file_object, req.params.traceId, io);
@@ -414,7 +417,7 @@ app.post('/deletetrace/:traceId', (req, res) => {
 
 app.post('/toggledisplay/:traceId/:toggleValue', (req, res) => {
 
-	const toggleValue = (req.params.toggleValue == "true" || req.params.toggleValue == true) ? true : false 
+	const toggleValue = (req.params.toggleValue == "true" || req.params.toggleValue == true) ? true : false
 	const traceId = req.params.traceId;
 
 	const params = {
@@ -437,10 +440,3 @@ app.post('/toggledisplay/:traceId/:toggleValue', (req, res) => {
 });
 
 const traceProcessor = require("./library/traceProcessor");
-
-
-
-
-
-
-

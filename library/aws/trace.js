@@ -1,7 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 
-// importing aws services 
+// importing aws services
 const current_location = path.resolve(__dirname).split("/library");
 const app_dir = current_location[current_location.length - 2];
 const aws_service = require(`${app_dir}/modules/aws.js`);
@@ -29,7 +29,7 @@ async function add_trace(traceObject) {
 					email: traceObject.ownerEmail
 				}
 
-				// adding the trace object to the user's list of traces 
+				// adding the trace object to the user's list of traces
 				const add_traceId_user_promise = require("./user.js").add_trace(userObject, traceObject);
 				add_traceId_user_promise.then((flag) => {
 					resolve(flag);
@@ -63,7 +63,7 @@ async function remove_trace(traceId) {
 async function add_file(file, traceId, io) {
 	return await new Promise((resolve, reject) => {
 
-		/* 
+		/*
 			the estimated number of blocks is needed to compute an estimated
 			progress percentage to show to the user
 		*/
@@ -76,9 +76,14 @@ async function add_file(file, traceId, io) {
 			io.emit(`extract_${traceId}`, numBlocks);
 		}
 
+		// console.log("we are in aws add file")
+		// console.log(traceId)
+		// console.log(file)
+		// console.log("what is the error")
+
 		const params = {
 			TableName: "traces",
-			Key: { id: traceId },
+			Key: { "id": String(traceId) },
 			ExpressionAttributeNames: {
 				'#file_name': file.name,
 				'#queue': 'queue'
@@ -86,10 +91,10 @@ async function add_file(file, traceId, io) {
 			ConditionExpression: 'attribute_not_exists(#queue.#file_name)',
 			ExpressionAttributeValues: {
 				':file_object': {
-					'name': file.name,
-					'size': file.size,
-					'done': 0,
-					'need': numBlocks,
+					'name': String(file.name),
+					'size': String(file.size),
+					'done': "0",
+					'need': String(numBlocks),
 				}
 			},
 			UpdateExpression: 'set #queue.#file_name = :file_object'

@@ -1,7 +1,8 @@
 var AWS = require('aws-sdk')
 var fs = require('fs')
+const path = require("path")
 
-var contents = fs.readFileSync("settings.json")
+var contents = fs.readFileSync(path.resolve(__dirname, "../modules/settings.json"))
 var settings = JSON.parse(contents)
 
 var creds = new AWS.Credentials({
@@ -28,4 +29,8 @@ exports.lambda = function() {
 
 exports.s3 = function() {
   return new AWS.S3({apiVersion: '2006-03-01'});
+}
+
+exports.ses = function() {
+  return new AWS.SES({apiVersion: '2010-12-01'})
 }

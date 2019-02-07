@@ -26,6 +26,10 @@ const ddb = aws_service.ddb();
 const ddb_main = aws_service.ddb_main();
 const lambda = aws_service.lambda();
 const s3 = aws_service.s3();
+const ses = aws_service.ses();
+
+// Mailer
+const Mailer = require('./modules/mailer.js');
 
 var client  = redis.createClient();
 const uuidv1 = require('uuid/v1');
@@ -52,10 +56,15 @@ app.use(bodyParser.urlencoded({extended: true}));
 var http_server = http.Server(app);
 var https_server = https.createServer(app);
 var io = require('socket.io').listen(http_server);
-http_server.listen(80);
-https_server.listen(443);
+http_server.listen(80, function(){
+  console.log("Listening at :80");
+});
+https_server.listen(443, function(){
+  console.log("Listening at :443");
+});
 const redisAdapter = require('socket.io-redis');
 io.adapter(redisAdapter({ host: 'localhost', port: 6379 }));
+const mailer = new Mailer(ses);
 
 io.on('connection', function(socket){
 
@@ -156,15 +165,15 @@ app.post('/traces/:traceId', function(req, res){
 				const zlib = require('zlib');
 				const id = req.params.traceId;
 				var file_count = 0; // the count for the file name
-				var count = 0; // counting the number of lines for the current file 
+				var count = 0; // counting the number of lines for the current file
 				var output_file_name; // the output file name that changes everytime
-				var outStream; // the outstream that will change when the line limit is hit 
-				createNewWriteStream(id); // create the initial write stream 
+				var outStream; // the outstream that will change when the line limit is hit
+				createNewWriteStream(id); // create the initial write stream
 				const data_location = form.uploadDir;
 				var start_date_string = "0";
 				var num_files = 0;
 				var read_done = 0;
-				
+
 				const file_name = file.name;
 				const file_size = file.size;
 				const original_file_location = `${data_location}/${file_name}`;
@@ -175,7 +184,7 @@ app.post('/traces/:traceId', function(req, res){
 
 				console.log(num_blocks);
 
-			    // updating the file information to the queue in the database 
+			    // updating the file information to the queue in the database
 			    const ddb_res = ddb.update({
 			      TableName: "traces",
 			      Key: { id: req.params.traceId },
@@ -204,7 +213,7 @@ app.post('/traces/:traceId', function(req, res){
 
 				io.emit(`extract_${req.params.traceId}`, { 'file': file.name, 'num_blocks': num_blocks });
 
-				// read the gz file and pipe the output to gunzip which gives the extracted output 
+				// read the gz file and pipe the output to gunzip which gives the extracted output
 				var gzip_read_stream = fs.createReadStream(`${data_location}/${file_name}`)
 					.pipe(zlib.Gunzip());
 
@@ -213,7 +222,7 @@ app.post('/traces/:traceId', function(req, res){
 				    input: gzip_read_stream
 				});
 
-				// each line is placed on its proper part file 
+				// each line is placed on its proper part file
 				lineReader.on('line', function(line) {
 					count++;
 					//console.log("this is the start date string here")
@@ -301,7 +310,7 @@ app.post('/traces/:traceId', function(req, res){
 							lambda.invoke(lambda_params, function(err, data) {
 								if (err) {
 									console.log('lambda error');
-									console.log(err, err.stack); 
+									console.log(err, err.stack);
 								} else {
 									io.emit(`lambda_${req.params.traceId}`);
 									console.log('lambda done')
@@ -320,15 +329,15 @@ app.post('/traces/:traceId', function(req, res){
 									// }
 									// io.emit(`lambda_${m.traceId}`);
 									// process.send({ msg: "lambda" });
-									// when all the lambda function has finished processing 
-									// call a socket to tell the page that new data is 
-									// avaialble 
+									// when all the lambda function has finished processing
+									// call a socket to tell the page that new data is
+									// avaialble
 									//console.log("num files is " + num_files);
 									//console.log("read_count is " + file_count);
 									if (read_done && num_files == read_done) {
 										//console.log("read done is " + read_done);
 										//console.log(original_file_location);
-										
+
 							            const combine_json_payload = {
 							              "id": id,
 							              "file": file_name,
@@ -494,7 +503,7 @@ app.post('/add', (req, res) => {
 
 			console.log("The email is " + req.session.key.email);
 
-			// udpating the user obejct 
+			// udpating the user obejct
 			const update_user_params = {
 				Key: {
 					id: req.session.key.id,
@@ -515,7 +524,7 @@ app.post('/add', (req, res) => {
 				else console.log(data)
 			});
 
-			// find the link and redirect to it 
+			// find the link and redirect to it
 			ddb.query(query_params, function(err, data) {
 				if (err) {
 					throw(err);
@@ -702,8 +711,12 @@ app.post('/toggledisplay/:traceId/:toggleValue', (req, res) => {
 // });
 
 
-app.get("/testing", (req, res) => {
-	res.render("skeletor")
+app.get('/emailtest', (req, res) => {
+  mailer.send_notification(["safa.tinaztepe@gmail.com"], "hello", "banana");
+  res.render('emailtest');
 });
 
 
+app.get("/testing", (req, res) => {
+	res.render("skeletor")
+});

@@ -711,6 +711,7 @@ app.post('/toggledisplay/:traceId/:toggleValue', (req, res) => {
 // });
 
 
+// TODO: enable and verify an origin email address in ses and request spending limit increase
 app.get('/emailtest', (req, res) => {
   mailer.send_notification(["safa.tinaztepe@gmail.com"], "hello", "banana");
   res.render('emailtest');

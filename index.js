@@ -29,7 +29,7 @@ const s3 = aws_service.s3();
 const ses = aws_service.ses();
 
 // Mailer
-const Mailer = require('./modules/mailer.js');
+const Mailer = require('./modules/mailer/mailer.js');
 
 var client  = redis.createClient();
 const uuidv1 = require('uuid/v1');
@@ -710,10 +710,11 @@ app.post('/toggledisplay/:traceId/:toggleValue', (req, res) => {
 // 	res.render
 // });
 
-
-// TODO: enable and verify an origin email address in ses and request spending limit increase
 app.get('/emailtest', (req, res) => {
-  mailer.send_notification(["safa.tinaztepe@gmail.com"], "hello", "banana");
+  // mailer.complete(["safa.tinaztepe@gmail.com"], "stinazt", "123");
+  mailer.welcome(["safa.tinaztepe@gmail.com"], "stinazt");
+  // mailer.added(["safa.tinaztepe@gmail.com"], "stinazt", "123");
+  // mailer.error(["safa.tinaztepe@gmail.com"], "stinazt", "123", "banana error");
   res.render('emailtest');
 });
 

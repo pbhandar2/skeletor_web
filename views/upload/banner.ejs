@@ -1,0 +1,29 @@
+<div class="row card">
+	<div class="col-xs-10">
+		<p class="title-text"><%= trace.name %></p>
+		<p class="content-text"><%= trace.description %></p>
+		<p class="content-text">Uploader: <%= trace.ownerEmail %></p>
+	</div>
+	<% if(userId && (userId.id == trace.ownerId)){ %>
+		<div class="col-xs-2">
+			<div class="row button-container">
+				<input type="file"  style="visibility: hidden;" id="file-upload" class="input-file" multiple="multiple" />
+				<button id="file-upload-btn" class="btn btn-primary content-text float-right">
+				<label for="file-upload" style="display:inline;"">
+					Upload File
+				</label>
+				</button>
+			</div>
+			<div class="row button-container">
+				<button type="button" class="btn btn-danger content-text float-right" id="deleteTrace">Delete</button>
+			</div>
+			<div class="row button-container">
+				<% if(trace.display == "true" || trace.display){ %>
+					<button type="button" class="btn btn-warning float-right" id="toggleDisplay">Make Public</button>
+				<% } else{ %>
+					<button type="button" class="btn btn-warning float-right" id="toggleDisplay">Make Private</button>
+				<% } %>
+			</div>
+		</div>
+	<% } %>
+</div>

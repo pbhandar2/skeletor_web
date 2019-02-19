@@ -1,3 +1,6 @@
+var path = require('path');
+global.appRoot = path.resolve(__dirname);
+
 const http = require('http');
 const https = require('https');
 var express = require('express');
@@ -70,6 +73,11 @@ io.on('connection', function(socket){
 
 });
 
+function done(params) {
+	console.log("it is done");
+	console.log(params);
+}
+
 
 const uploads_path = "./uploads";
 if (fs.existsSync(uploads_path)) {
@@ -127,7 +135,7 @@ app.get('/traces/:traceId', (req, res) => {
 	ddb.query(params, function(err, data) {
 		if (err) res.render('error', { 'userId': (req.session) ? req.session.key : null, 'errorMessage': 'Error connecting to the database.' })
 		else {
-			if (data.Items[0]) res.render('trace_page', { 'trace': data.Items[0], 'userId': (req.session) ? req.session.key : null  })
+			if (data.Items[0]) res.render('upload', { 'trace': data.Items[0], 'userId': (req.session) ? req.session.key : null  })
 			else res.render('error', { 'userId': (req.session) ? req.session.key : null, 'errorMessage': 'The trace does not exist in the database.' })
 		}
 	});
@@ -136,26 +144,34 @@ app.get('/traces/:traceId', (req, res) => {
 app.post('/traces/:traceId', function(req, res){
 
 	// create an incoming form object
-	var form = new formidable.IncomingForm();
+	var form = new formidable.IncomingForm({
+	  uploadDir: __dirname + '/uploads',  // don't forget the __dirname here
+	  keepExtensions: true
+	});
 
 	// specify that we want to allow the user to upload multiple files in a single request
 	form.multiples = true;
-
 	form.maxFileSize = 2097314290000;
 
-	// store all uploads in the /uploads directory
-	form.uploadDir = path.join(__dirname, '/uploads/' + req.params.traceId);
-
 	const start = moment();
+	const timestamp = new Date().valueOf();
+
+	console.log("The timestamp is " + timestamp);
 
 	// every time a file has been uploaded successfully,
 	// rename it to it's orignal name
 	form.on('file', function(field, file) {
-
+		//console.log('/uploads/' + req.params.traceId + "/" + file.name + "_" + timestamp);
+		// store all uploads in the /uploads directory
+		form.uploadDir = path.join(__dirname, '/uploads/' + req.params.traceId + "/" + file.name + "_" + timestamp);
+		//console.log(`./uploads/${req.params.traceId}/${file.name}_${timestamp}`);
+		fs.mkdirSync(`./uploads/${req.params.traceId}/${file.name}_${timestamp}`);
+		//console.log("dir created");
 		// move the file to the proper directory
 		fs.rename(file.path, path.join(form.uploadDir, file.name), (error) => {
 			if (error) console.log("An error occured while renaming and moving the file." + error);
 			else {
+<<<<<<< HEAD
 
 
 
@@ -398,6 +414,34 @@ app.post('/traces/:traceId', function(req, res){
 						}
 			        });
 				}
+=======
+				const file_object = {
+					"name": file.name,
+					"size": file.size,
+					"timestamp": timestamp,
+					"path": `/uploads/${req.params.traceId}/${file.name}_${timestamp}/${file.name}`
+				};
+
+        // console.log("THIS IS THE FILE OBJECT.")
+      	// console.log(file_object)
+
+				const aws = require("./library/aws");
+		        const add_file_promise = aws.add_file(file_object, req.params.traceId, io);
+		        add_file_promise.then((flag) => {
+		            const traceProcessor = require("./library/traceProcessor");
+		            const process_trace_file_promise = traceProcessor.processTraceFile(file_object, req.params.traceId, io);
+			        process_trace_file_promise.then((flag) => {
+			            let end = moment();
+			            let diff = end.diff(start);
+			            let f = moment.utc(diff).format("HH:mm:ss.SSS");
+			            console.log(f);
+			        }).catch((err) => {
+			            console.log(err);
+			        }).then(done, done);
+		        }).catch((err) => {
+		            console.log(err);
+		        }).then(done, done);
+>>>>>>> c421e85551ea50966a93c21b2986936c057e4319
 			}
 		});
 	});
@@ -475,6 +519,7 @@ app.post('/add', (req, res) => {
     	uploadedOn: new Date().toString()
 	}
 
+<<<<<<< HEAD
 	var params = {
 		Item: item_object,
 		TableName: "traces"
@@ -536,6 +581,15 @@ app.post('/add', (req, res) => {
 			});
 
 		}
+=======
+	const item_uploads_path = "./uploads/" + item_object.id;
+	fs.mkdirSync(item_uploads_path);
+
+	const create_trace_promise = require("./library/aws").create_trace(item_object);
+	create_trace_promise.then((flag) => {
+		const link = `/traces/${item_object.id}`;
+		res.redirect(link);
+>>>>>>> c421e85551ea50966a93c21b2986936c057e4319
 	});
 
 });
@@ -680,8 +734,7 @@ app.post('/deletetrace/:traceId', (req, res) => {
 
 app.post('/toggledisplay/:traceId/:toggleValue', (req, res) => {
 
-	// getting the params
-	const toggleValue = req.params.toggleValue;
+	const toggleValue = (req.params.toggleValue == "true" || req.params.toggleValue == true) ? true : false
 	const traceId = req.params.traceId;
 
 	const params = {
@@ -696,10 +749,7 @@ app.post('/toggledisplay/:traceId/:toggleValue', (req, res) => {
 		TableName: "traces"
 	}
 
-
 	ddb.update(params, function(err, data) {
-		console.log(err);
-		console.log(data);
 		if (err) res.send(err)
 		else res.send("done")
 	});
@@ -722,3 +772,4 @@ app.get('/emailtest', (req, res) => {
 app.get("/testing", (req, res) => {
 	res.render("skeletor")
 });
+const traceProcessor = require("./library/traceProcessor");

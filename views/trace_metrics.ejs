@@ -1,0 +1,51 @@
+<html lang="en">
+	<head>
+
+	    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+	    <script src="https://d3js.org/d3.v4.min.js"></script>
+	    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+
+		<script type="text/javascript">
+			// these variables will be accessible in the js files below it
+			const id = "<%= trace.id %>";
+			const files = <%- JSON.stringify(trace.files) %>;
+			const queue = <%- JSON.stringify(trace.queue) %>;
+			console.log(files);
+		</script>
+		<script src="/js/trace_page.js"></script>
+		<script src="/js/trace_page/socket.js"></script>
+	    
+		<link rel="stylesheet" href="/css/main.css">
+		<link rel="stylesheet" href="/css/trace_page.css">
+		<link rel="stylesheet" href="/css/chart.css">
+
+	</head>
+	<body>
+		<%- include("shared/navbar", { login: userId }) %>
+		<div class="container">
+			<%- include("trace_metrics/alert.ejs") %>
+			<%- include("trace_metrics/trace_details.ejs", { userId: userId, trace: trace }) %>
+			<%- include("trace_metrics/uploader.ejs", { userId: userId, trace: trace }) %>
+			<%- include("trace_metrics/file_selector.ejs", { trace: trace }) %>
+
+			<div class="row card" id="chart-container">
+				<div class="col-xs-12">
+					<div class="row" id="chart-main">
+						<svg id="svg1" width="960" height="500"></svg>
+					</div>
+<!-- 					<div class="row">
+						<select id="add_metric_value"></select>
+						<button id="add_metric">Add Metric</button>
+					</div>
+					<div id="selected_metrics">
+						
+					</div> -->
+				</div>
+			</div>
+
+			<script src="/js/trace_page/file_selector.js"></script>
+		</div>
+	</body>
+</html>

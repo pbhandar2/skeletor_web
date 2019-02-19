@@ -9,9 +9,13 @@
     <link rel="stylesheet" href="/css/tooltip.css">
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
     <title>Public Traces</title>
-    <script src="js/test.js"></script>
+    <script type="text/javascript">
+      const traces = <%- JSON.stringify(traces) %>;
+    </script>
     <script type="text/javascript" src="/js/main.js"></script>
+    <script src="js/test.js"></script>
   </head>
 
   <body>
@@ -19,14 +23,14 @@
     <div class="container">
       <% if(userId){ %>
         <div class="row card">
-          <p class="title-text">Create a Trace Set</p>
+          <p class="title-text">Create a Trace</p>
           <form ref='addTraceForm'
             id='addTraceForm'
             action='/add'
             method='post'>
             <div class="form-group">
               <label for="Trace Set Name content-text">Name</label>
-              <input type="text" class="form-control" name="name" placeholder="Trace Set Name">
+              <input type="text" class="form-control" name="name" placeholder="Trace Name">
             </div>
             <div class="form-group">
               <label for="Short Description content-text">Description</label>
@@ -41,7 +45,7 @@
         </div>
       <% } else{ %>
         <div class="row card">
-          <p class="title-text">Please <a href="/login">Login</a> to be able to create a trace set.</p>
+          <p class="title-text">Please <a href="/login">Login</a> to be able to create a trace.</p>
         </div>
       <% } %>
       <div class="row card">
@@ -49,11 +53,11 @@
         <table class="table">
           <thead>
             <tr>
-              <th scope="col" title="Name of the trace set.">Name  <span>?</span></th>
-              <th scope="col" title="The type of trace files. A type of a trace file confirms to a certain format hence is parsed accordingly.">Type  <span>?</span></th>
-              <th scope="col" title="Email of the creater of the trace set.">Uploader  <span>?</span></th>
-              <th scope="col" title="The number of files the trace set contains.">Number of files  <span>?</span></th>
-              <th scope="col" title="The date when the trace set was created.">Upload Date  <span>?</span></th>
+              <th scope="col" title="Name of the trace set.">Name  <span class="give-details-text">?</span></th>
+              <th scope="col" title="The type of trace files. A type of a trace file confirms to a certain format hence is parsed accordingly.">Type  <span class="give-details-text">?</span></th>
+              <th scope="col" title="Email of the creater of the trace set.">Uploader  <span class="give-details-text">?</span></th>
+              <th scope="col" title="The number of files the trace set contains.">Number of files  <span class="give-details-text">?</span></th>
+              <th scope="col" title="The date when the trace set was created.">Upload Date (PDT)  <span class="give-details-text">?</span></th>
             </tr>
           </thead>
           <tbody>
@@ -65,7 +69,7 @@
                   <td><p  class="content-text"><%= traces[i].type %></p></td>
                   <td><p  class="content-text"><%= traces[i].ownerEmail %></p></td>
                   <td><p  class="content-text"><%= traces[i].files.length %></p></td>
-                  <td><p  class="content-text"><%= traces[i].uploadedOn %></p></td>
+                  <td><p class="content-text" id='date_<%= traces[i].id %>'></p></td>
                 </tr>
               <% } %>
             <% } %>
@@ -79,11 +83,11 @@
           <table class="table">
             <thead>
                <tr>
-                <th scope="col" title="Name of the trace set.">Name  <span>?</span></th>
-                <th scope="col" title="The type of trace files. A type of a trace file confirms to a certain format hence is parsed accordingly.">Type  <span>?</span></th>
-                <th scope="col" title="Email of the creater of the trace set.">Uploader  <span>?</span></th>
-                <th scope="col" title="The number of files the trace set contains.">Number of files  <span>?</span></th>
-                <th scope="col" title="The date when the trace set was created.">Upload Date  <span>?</span></th>
+                <th scope="col" title="Name of the trace set.">Name  <span class="give-details-text">?</span></th>
+                <th scope="col" title="The type of trace files. A type of a trace file confirms to a certain format hence is parsed accordingly.">Type  <span class="give-details-text">?</span></th>
+                <th scope="col" title="Email of the creater of the trace set.">Uploader  <span class="give-details-text">?</span></th>
+                <th scope="col" title="The number of files the trace set contains.">Number of files  <span class="give-details-text">?</span></th>
+                <th scope="col" title="The date when the trace set was created.">Upload Date (PDT)  <span class="give-details-text">?</span></th>
               </tr>
             </thead>
             <tbody>
@@ -94,7 +98,7 @@
                     <td><p  class="content-text"><%= traces[i].type %></p></td>
                     <td><p  class="content-text"><%= traces[i].ownerEmail %></p></td>
                     <td><p  class="content-text"><%= traces[i].files.length %></p></td>
-                    <td><p  class="content-text"><%= traces[i].uploadedOn %></p></td>
+                    <td><p class="content-text" id='date_<%= traces[i].id %>'></p></td>
                   </tr>
                 <% } else{ %>
                 <% } %>

@@ -22,7 +22,7 @@ $("#add-file").click(function(){
 
 });
 
-$(document).on('click', '#remove-selected-file', function(){ 
+$(document).on('click', '#remove-selected-file', function(){
      const id_to_remove = this.parentNode.parentNode.id;
      selected_files.splice(selected_files.indexOf(id_to_remove), 1);
      this.parentNode.parentNode.remove();
@@ -70,7 +70,7 @@ var clip = svg.append("defs").append("svg:clipPath")
 	.attr("width", width)
 	.attr("height", height)
 	.attr("x", 0)
-	.attr("y", 0); 
+	.attr("y", 0);
 
 
 const Line_chart = svg.append("g")
@@ -103,7 +103,7 @@ if (!files.length) {
 
 $("#add_metric").on("click", function(e) {
 
-	// the metric to be added 
+	// the metric to be added
 	const select_value = document.getElementById("add_metric_value").value;
 
 	if (selected_metrics_values.indexOf(select_value) < 0) {
@@ -114,7 +114,7 @@ $("#add_metric").on("click", function(e) {
 		// current y-axis domain
 	    const current_max_y = y.domain();
 
-	    // if the max of the new data to be added is greater than the graph's current max 
+	    // if the max of the new data to be added is greater than the graph's current max
 	    // value in domain then the y-axis needs to be rescaled
 	    if (metric_value_range[select_value] > current_max_y[1]) {
 	       selected_metrics_values.push(select_value);
@@ -198,13 +198,13 @@ function loadData(file_name) {
 }
 
 /*
-	addMetric: adds a line to the graph 
+	addMetric: adds a line to the graph
 	params:
 		select_value: the name of the metric to be added
 */
 function addMetric(select_value) {
-	// get the index of the metric value from the array of metrics to 
-	// get the corresponding color 
+	// get the index of the metric value from the array of metrics to
+	// get the corresponding color
 	const select_index = select.indexOf(select_value);
 	const line = d3.line().x(function (d) { return x(d.date); }).y(function (d) { return y(d[select_value]); });
 	const line2 = d3.line().x(function (d) { return x2(d.date); }).y(function (d) { return y2(d[select_value]); });
@@ -226,7 +226,7 @@ function addMetric(select_value) {
 }
 
 /*
-	removeMetric: remove metric rom the chart 
+	removeMetric: remove metric rom the chart
 	params:
 		select_value: the name of the metric to be added
 */
@@ -237,16 +237,16 @@ function removeMetric(select_value) {
 }
 
 /*
-	resetGraph: resets the graph based on the metrics selected mainly to rescale the graph and 
+	resetGraph: resets the graph based on the metrics selected mainly to rescale the graph and
 	plot the values again to fit the scale
 */
 function resetGraph() {
-	
+
 	line1_array = [];
 	line2_array = [];
 
-	// if there is no element in selected metrics array then remove all the lines in the array 
-	// this is for when the only line in the graph is removed 
+	// if there is no element in selected metrics array then remove all the lines in the array
+	// this is for when the only line in the graph is removed
 	if (!selected_metrics.length) d3.selectAll(".line").remove();
 
 	// getting the max y_val for the y-axis domain and removing the existing lines in the graph
@@ -363,12 +363,3 @@ socket.on(id, function (data) {
 	console.log("DONEEEEEEEE");
 	console.log(data);
 });
-
-
-
-
-
-
-
-
-

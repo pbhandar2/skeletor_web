@@ -1,0 +1,168 @@
+[
+    {
+        "date": "2017-12-03-23-31-31", 
+        "gpfsSwapdEnqueue": 2
+    }, 
+    {
+        "date": "2017-12-03-23-31-32", 
+        "gpfs_i_lookup": 2, 
+        "gpfs_i_permission": 2
+    }, 
+    {
+        "Cifs2ACL": 2754, 
+        "date": "2017-12-03-23-31-33", 
+        "gpfs_f_open": 5503, 
+        "gpfs_f_rdwr": 5502, 
+        "gpfs_f_release": 5502, 
+        "gpfs_i_create": 5504, 
+        "gpfs_i_lookup": 5506, 
+        "gpfs_i_mkdir": 4, 
+        "gpfs_s_read_inode2": 5508
+    }, 
+    {
+        "Cifs2ACL": 2087, 
+        "date": "2017-12-03-23-31-34", 
+        "gpfs_f_open": 4175, 
+        "gpfs_f_rdwr": 4175, 
+        "gpfs_f_release": 4174, 
+        "gpfs_i_create": 4174, 
+        "gpfs_i_lookup": 4174, 
+        "gpfs_s_read_inode2": 4174
+    }, 
+    {
+        "Cifs2ACL": 1238, 
+        "date": "2017-12-03-23-31-35", 
+        "gpfs_f_open": 2436, 
+        "gpfs_f_rdwr": 2436, 
+        "gpfs_f_release": 2436, 
+        "gpfs_i_create": 2436, 
+        "gpfs_i_lookup": 2436, 
+        "gpfs_s_read_inode2": 2436
+    }, 
+    {
+        "Cifs2ACL": 1772, 
+        "date": "2017-12-03-23-31-36", 
+        "gpfs_f_open": 3544, 
+        "gpfs_f_rdwr": 3544, 
+        "gpfs_f_release": 3544, 
+        "gpfs_i_create": 3544, 
+        "gpfs_i_lookup": 3544, 
+        "gpfs_s_read_inode2": 3544
+    }, 
+    {
+        "Cifs2ACL": 1817, 
+        "date": "2017-12-03-23-31-37", 
+        "gpfs_f_open": 3634, 
+        "gpfs_f_rdwr": 3634, 
+        "gpfs_f_release": 3634, 
+        "gpfs_i_create": 3634, 
+        "gpfs_i_lookup": 3634, 
+        "gpfs_s_read_inode2": 3634
+    }, 
+    {
+        "Cifs2ACL": 914, 
+        "date": "2017-12-03-23-31-38", 
+        "gpfs_f_open": 1828, 
+        "gpfs_f_rdwr": 1828, 
+        "gpfs_f_release": 1828, 
+        "gpfs_i_create": 1828, 
+        "gpfs_i_lookup": 1828, 
+        "gpfs_s_read_inode2": 1828
+    }, 
+    {
+        "Cifs2ACL": 2342, 
+        "date": "2017-12-03-23-31-39", 
+        "gpfs_f_open": 4284, 
+        "gpfs_f_rdwr": 4284, 
+        "gpfs_f_release": 4284, 
+        "gpfs_i_create": 4284, 
+        "gpfs_i_lookup": 4284, 
+        "gpfs_s_read_inode2": 4284
+    }, 
+    {
+        "Cifs2ACL": 1523, 
+        "date": "2017-12-03-23-31-40", 
+        "gpfsSwapdEnqueue": 1, 
+        "gpfs_f_open": 3046, 
+        "gpfs_f_rdwr": 3046, 
+        "gpfs_f_release": 3046, 
+        "gpfs_i_create": 3046, 
+        "gpfs_i_lookup": 3046, 
+        "gpfs_s_delete_inode": 2, 
+        "gpfs_s_read_inode2": 3046
+    }, 
+    {
+        "Cifs2ACL": 59, 
+        "date": "2017-12-03-23-31-41", 
+        "gpfs_f_open": 118, 
+        "gpfs_f_rdwr": 119, 
+        "gpfs_f_release": 120, 
+        "gpfs_i_create": 119, 
+        "gpfs_i_lookup": 120, 
+        "gpfs_s_read_inode2": 118
+    }, 
+    {
+        "Cifs2ACL": 1839, 
+        "date": "2017-12-03-23-31-41", 
+        "gpfs_f_open": 3676, 
+        "gpfs_f_rdwr": 3676, 
+        "gpfs_f_release": 3676, 
+        "gpfs_i_create": 3676, 
+        "gpfs_i_lookup": 3676, 
+        "gpfs_s_read_inode2": 3676
+    }, 
+    {
+        "Cifs2ACL": 1928, 
+        "date": "2017-12-03-23-31-42", 
+        "gpfs_f_open": 3858, 
+        "gpfs_f_rdwr": 3857, 
+        "gpfs_f_release": 3856, 
+        "gpfs_i_create": 3857, 
+        "gpfs_i_lookup": 3856, 
+        "gpfs_s_read_inode2": 3858
+    }, 
+    {
+        "Cifs2ACL": 1353, 
+        "date": "2017-12-03-23-31-43", 
+        "gpfs_f_open": 2704, 
+        "gpfs_f_rdwr": 2705, 
+        "gpfs_f_release": 2706, 
+        "gpfs_i_create": 2705, 
+        "gpfs_i_lookup": 2706, 
+        "gpfs_s_read_inode2": 2704
+    }, 
+    {
+        "Cifs2ACL": 827, 
+        "date": "2017-12-03-23-31-44", 
+        "gpfs_f_open": 1656, 
+        "gpfs_f_rdwr": 1655, 
+        "gpfs_f_release": 1654, 
+        "gpfs_i_create": 1655, 
+        "gpfs_i_lookup": 1654, 
+        "gpfs_s_read_inode2": 1656
+    }, 
+    {
+        "Cifs2ACL": 2880, 
+        "date": "2017-12-03-23-31-45", 
+        "gpfsSwapdEnqueue": 15, 
+        "gpfs_f_open": 5760, 
+        "gpfs_f_rdwr": 5761, 
+        "gpfs_f_release": 5762, 
+        "gpfs_i_create": 5760, 
+        "gpfs_i_lookup": 5760, 
+        "gpfs_s_delete_inode": 30, 
+        "gpfs_s_read_inode2": 5760
+    }, 
+    {
+        "Cifs2ACL": 1614, 
+        "date": "2017-12-03-23-31-46", 
+        "gpfsSwapdEnqueue": 71, 
+        "gpfs_f_open": 3228, 
+        "gpfs_f_rdwr": 3227, 
+        "gpfs_f_release": 3226, 
+        "gpfs_i_create": 3228, 
+        "gpfs_i_lookup": 3228, 
+        "gpfs_s_delete_inode": 142, 
+        "gpfs_s_read_inode2": 3228
+    }
+    ]

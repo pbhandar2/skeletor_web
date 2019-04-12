@@ -1,7 +1,7 @@
 let selected_files = [];
 let all_selected_metrics = {};
 
-// color scale to choose color from 
+// color scale to choose color from
 //const colorScale = d3.scaleSequential(d3.interpolateWarm).domain([0, getTotalMetrics()]);
 let colorScale = generateRandomColors(getTotalMetrics());
 
@@ -21,7 +21,7 @@ total_metrics = getTotalMetrics();
 	to the chart. This will do a UI update to show the file name, metric
 	options for the file, and a button to remove the file. This will also
 	call the function loadData() which will load the data for the chart to
-	be available to use it. 
+	be available to use it.
 */
 $("#add-file").click(function(){
 	const select_element = document.getElementById("file-selector");
@@ -29,12 +29,12 @@ $("#add-file").click(function(){
 
 	if (select_element.value != "none" && selected_files.indexOf(selected_file) < 0) {
 		const file_selected_div = document.getElementById("files-selected-list");
-		
+
 		// loading the data for that particular file into the chart
 		loadData(id, selected_file);
 
-		// updating the selected file array with the file name 
-		// updating the selected metrics to have an entry for this file 
+		// updating the selected file array with the file name
+		// updating the selected metrics to have an entry for this file
 		selected_files.push(selected_file);
 		all_selected_metrics[selected_file] = [];
 
@@ -43,7 +43,7 @@ $("#add-file").click(function(){
 		main_wrapper.id = selected_file;
 		main_wrapper.className = "row";
 
-		// creating the file name portion 
+		// creating the file name portion
 		const file_name_wrapper = document.createElement("div");
 		file_name_wrapper.className = "col-xs-3";
 		const file_name_p_element = document.createElement("p");
@@ -71,8 +71,8 @@ $("#add-file").click(function(){
 		// filler div to just space out the elements
 		const filler_div = document.createElement("div");
 		filler_div.className = "col-xs-2";
-		
-		// create the remove button 
+
+		// create the remove button
 		const remove_button_wrapper = document.createElement("div");
 		remove_button_wrapper.className = `col-xs-2 ${selected_file}`;
 		const remove_button = document.createElement("button");
@@ -81,7 +81,7 @@ $("#add-file").click(function(){
 		remove_button.innerHTML = "Remove File";
 		remove_button_wrapper.appendChild(remove_button);
 
-		// now creating the area where selected metrics will be displayed for each file 
+		// now creating the area where selected metrics will be displayed for each file
 		selected_metrics_area_wrapper = document.createElement("div");
 		selected_metrics_area_wrapper.className = "row";
 		selected_metrics_area = document.createElement("div");
@@ -106,7 +106,7 @@ $("#add-file").click(function(){
 /*
 	This function creates a select element for each file. This allows the
 	user to have multiple files loaded on a graph and to select indivudual
-	metrics from each file. 
+	metrics from each file.
 
 	params:
 		file_object: The file object which contains the fields or the options
@@ -127,26 +127,26 @@ function create_selected_file_element(fields) {
 }
 
 /*
-	This function removes a selected file's data from the overall data of the chart. 
-	It makes a UI change where it removes the file and its selected metrics from the 
+	This function removes a selected file's data from the overall data of the chart.
+	It makes a UI change where it removes the file and its selected metrics from the
 	selected files list and then removes all data relevant to this file from the chart.
 */
-$(document).on('click', '#remove-selected-file', function(){ 
+$(document).on('click', '#remove-selected-file', function(){
 	const file_name = this.parentNode.className.split(" ").pop();
     const id_to_remove = this.parentNode.parentNode.id;
     selected_files.splice(selected_files.indexOf(id_to_remove), 1);
     all_selected_metrics[file_name] = undefined;
     this.parentNode.parentNode.remove();
- 
+
     rescale_graph();
 });
 
 /*
-	This function add the selected metrics to the chart and the list of selected metrics. 
+	This function add the selected metrics to the chart and the list of selected metrics.
 	It makes a UI change where it adds the metric to the list of selected metrics for the
 	relevant file and also adds a line to the graph for this metric, file combination.
 */
-$(document).on('click', '#add-selected-metric', function(){ 
+$(document).on('click', '#add-selected-metric', function(){
 
 	const file_name = this.parentNode.className.split(" ").pop();
 	const selected_metrics = all_selected_metrics[file_name];
@@ -329,5 +329,3 @@ Each time you create a color:
 		return "#"+hx(color[0])+hx(color[1])+hx(color[2]); //then return the hex code
 	});
 }
-
-

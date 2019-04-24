@@ -157,7 +157,15 @@ app.post('/traces/:traceId', function(req, res){
 		// store all uploads in the /uploads directory
 		form.uploadDir = path.join(__dirname, '/uploads/' + req.params.traceId + "/" + file.name + "_" + timestamp);
 		//console.log(`./uploads/${req.params.traceId}/${file.name}_${timestamp}`);
+
+		try {
+			fs.mkdirSync(`./uploads/${req.params.traceId}`);
+		} catch (err) {
+			if (err.code !== 'EEXIST') throw err
+		}
+				
 		fs.mkdirSync(`./uploads/${req.params.traceId}/${file.name}_${timestamp}`);
+
 		//console.log("dir created");
 		// move the file to the proper directory
 		fs.rename(file.path, path.join(form.uploadDir, file.name), (error) => {

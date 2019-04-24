@@ -366,7 +366,7 @@ function zoomed() {
   end_time = rescale[1]
   // console.log(rescale)
   // console.log("HERE IN RESCALE")
-  io_size_hist_init()
+  // io_size_hist_init()
   //console.log(all_selected_metrics);
   //console.log(lines1);
 

@@ -55,22 +55,34 @@ async function get_trace_start_date(file_loc) {
 	});
 }
 
-async function process_trace(file_object, id, io) {
 
-	console.log("THIS IS THE FILE OBJECT.")
-	console.log(file_object)
+/*
+	This function processes the trace file. 
+	1. Break the file into 50MB pieces and upload to S3. 
+	2. Call Lambda function in order to process each of the files. 
+	Once all the files have been processed. 
+	Call a lambda function that combines all the files. 
+
+	Params:
+		file_object: the file object contains information like the name of the file, path of the file and the timestamp that differentiates files with the same name 
+		id: the id of the trace that the file it belongs to 
+		io: 
+
+*/
+async function process_trace(file_object, id, io) {
 
 	const file_name = file_object.name;
 	const path = file_object.path;
 	const timestamp = file_object.timestamp;
-	console.log(`inside process trace`);
 
+	// This is the promise in order to process the file. 
 	return await new Promise((resolve, reject) => {
 		try {
+
+			// get the start date of the file so that we get the idea of when the trace begins 
 			const get_start_date_promise = get_trace_start_date(`${app_dir}/uploads/${id}/${file_name}_${timestamp}/${file_name}`);
 
-
-
+			// once the start date has been extracted 
 			get_start_date_promise.then((start_date_string) => {
 
 				let line_count = 0;

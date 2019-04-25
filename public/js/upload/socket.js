@@ -7,6 +7,7 @@ var socket = io(baseUrl, {
 
 const lambda_done_socket_name = `lambda_${id}`;
 //console.log(lambda_done_socket_name);
+
 socket.on(lambda_done_socket_name, function (file_name) {
 	console.log("LMAMDA");
 	console.log(file_name);

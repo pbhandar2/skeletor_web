@@ -55,6 +55,8 @@ $(document).ready(function() {
             let f = moment.utc(diff).format("HH:mm:ss.SSS");
 
             console.log(`Upload successful for ${formData} in time ${f}`);
+            print(to_upload)
+            print(queue)
 
             to_upload.forEach((file) => {
               console.log("in to_upload for each")
@@ -67,6 +69,7 @@ $(document).ready(function() {
                 need: lambda_needed
               }
               queue[file.name] = queue_obj;
+              print(queue)
             });
             document.getElementById("file-upload-btn").disabled = false;
         },

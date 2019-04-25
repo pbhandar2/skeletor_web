@@ -105,7 +105,7 @@ app.get('/traces', (req, res) => {
 			},
 			FilterExpression: "display = :b",
 			TableName: "traces"
-		} 
+		}
 		ddb.scan(params, function(err, data) {
 			if (err) console.log(err)
 			else {
@@ -145,76 +145,83 @@ app.post('/traces/:traceId', function(req, res){
 	form.multiples = true;
 	form.maxFileSize = 2097314290000;
 
-	const start = moment();
-	const timestamp = new Date().valueOf();
+  console.log("POST REQUEST MADE!");
 
-	console.log("The timestamp is " + timestamp);
+  // form.parse(req);
+  //
+	// const start = moment();
+	// const timestamp = new Date().valueOf();
+  //
+	// console.log("The timestamp is " + timestamp);
+  //
+	// // every time a file has been uploaded successfully,
+	// // rename it to it's orignal name
+	// form.on('file', function(field, file) {
+	// 	//console.log('/uploads/' + req.params.traceId + "/" + file.name + "_" + timestamp);
+	// 	// store all uploads in the /uploads directory
+	// 	form.uploadDir = path.join(__dirname, '/uploads/' + req.params.traceId + "/" + file.name + "_" + timestamp);
+	// 	//console.log(`./uploads/${req.params.traceId}/${file.name}_${timestamp}`);
+  //
+	// 	try {
+	// 		fs.mkdirSync(`./uploads/${req.params.traceId}`);
+	// 	} catch (err) {
+	// 		if (err.code !== 'EEXIST') throw err
+	// 	}
+  //
+	// 	fs.mkdirSync(`./uploads/${req.params.traceId}/${file.name}_${timestamp}`);
+  //
+	// 	//console.log("dir created");
+	// 	// move the file to the proper directory
+	// 	fs.rename(file.path, path.join(form.uploadDir, file.name), (error) => {
+	// 		if (error) console.log("An error occured while renaming and moving the file." + error);
+	// 		else {
+	// 			const file_object = {
+	// 				"name": file.name,
+	// 				"size": file.size,
+	// 				"timestamp": timestamp,
+	// 				"path": `/uploads/${req.params.traceId}/${file.name}_${timestamp}/${file.name}`
+	// 			};
+  //
+  //       // console.log("THIS IS THE FILE OBJECT.")
+  //     	// console.log(file_object)
+  //
+	// 			const aws = require("./library/aws");
+	// 	        const add_file_promise = aws.add_file(file_object, req.params.traceId, io);
+	// 	        add_file_promise.then((flag) => {
+	// 	            const traceProcessor = require("./library/traceProcessor");
+	// 	            const process_trace_file_promise = traceProcessor.processTraceFile(file_object, req.params.traceId, io);
+	// 		        process_trace_file_promise.then((flag) => {
+	// 		            let end = moment();
+	// 		            let diff = end.diff(start);
+	// 		            let f = moment.utc(diff).format("HH:mm:ss.SSS");
+	// 		            console.log(f);
+	// 		        }).catch((err) => {
+	// 		            console.log(err);
+	// 		        }).then(done, done);
+	// 	        }).catch((err) => {
+	// 	            console.log(err);
+	// 	        }).then(done, done);
+	// 		}
+	// 	});
+	// });
+  //
+	// // log any errors that occur
+	// form.on('error', function(err) {
+	// 	console.log('An error has occured during file upload: \n' + err);
+	// });
+  //
+  // 	// once all the files have been uploaded, send a response to the client
+  // 	form.on('end', function() {
+	// 	console.log("file upload sucessfull");
+	// });
+  //
+	// // parse the incoming request containing the form data
+	// form.parse(req);
+  //
+	// res.send('ok');
 
-	// every time a file has been uploaded successfully,
-	// rename it to it's orignal name
-	form.on('file', function(field, file) {
-		//console.log('/uploads/' + req.params.traceId + "/" + file.name + "_" + timestamp);
-		// store all uploads in the /uploads directory
-		form.uploadDir = path.join(__dirname, '/uploads/' + req.params.traceId + "/" + file.name + "_" + timestamp);
-		//console.log(`./uploads/${req.params.traceId}/${file.name}_${timestamp}`);
 
-		try {
-			fs.mkdirSync(`./uploads/${req.params.traceId}`);
-		} catch (err) {
-			if (err.code !== 'EEXIST') throw err
-		}
-				
-		fs.mkdirSync(`./uploads/${req.params.traceId}/${file.name}_${timestamp}`);
 
-		//console.log("dir created");
-		// move the file to the proper directory
-		fs.rename(file.path, path.join(form.uploadDir, file.name), (error) => {
-			if (error) console.log("An error occured while renaming and moving the file." + error);
-			else {
-				const file_object = {
-					"name": file.name,
-					"size": file.size,
-					"timestamp": timestamp,
-					"path": `/uploads/${req.params.traceId}/${file.name}_${timestamp}/${file.name}`
-				};
-
-        // console.log("THIS IS THE FILE OBJECT.")
-      	// console.log(file_object)
-
-				const aws = require("./library/aws");
-		        const add_file_promise = aws.add_file(file_object, req.params.traceId, io);
-		        add_file_promise.then((flag) => {
-		            const traceProcessor = require("./library/traceProcessor");
-		            const process_trace_file_promise = traceProcessor.processTraceFile(file_object, req.params.traceId, io);
-			        process_trace_file_promise.then((flag) => {
-			            let end = moment();
-			            let diff = end.diff(start);
-			            let f = moment.utc(diff).format("HH:mm:ss.SSS");
-			            console.log(f);
-			        }).catch((err) => {
-			            console.log(err);
-			        }).then(done, done);
-		        }).catch((err) => {
-		            console.log(err);
-		        }).then(done, done);
-			}
-		});
-	});
-
-	// log any errors that occur
-	form.on('error', function(err) {
-		console.log('An error has occured during file upload: \n' + err);
-	});
-
-  	// once all the files have been uploaded, send a response to the client
-  	form.on('end', function() {
-		console.log("file upload sucessfull");
-	});
-
-	// parse the incoming request containing the form data
-	form.parse(req);
-
-	res.send('ok');
 });
 
 app.get('/signup', function(req, res) {

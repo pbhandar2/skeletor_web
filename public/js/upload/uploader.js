@@ -1,5 +1,6 @@
 $(document).ready(function() {
-  $('#file-upload').on('change', function (e){
+
+  $('#file-upload').on('change', function (e) {
 
     e.preventDefault();
 
@@ -27,10 +28,11 @@ $(document).ready(function() {
       to_upload.push({ "name": files[i].name, "size": files[i].size });
     }
 
-    console.log("TO UPLOAD")
-    console.log(to_upload)
+    // console.log("TO UPLOAD")
+    // console.log(to_upload)
 
     if (files.length > 0){
+
       var formData = new FormData();
 
       // NEED TO CHECK THIS AND WHY THIS NEEDS TO BE DONE BECAUSE I AM LOOPING TWICE
@@ -58,31 +60,32 @@ $(document).ready(function() {
         processData: false,
         contentType: false,
         success: function(data){
-            let end = moment();
-            let diff = end.diff(start);
-            let f = moment.utc(diff).format("HH:mm:ss.SSS");
+          console.log("DONE UPLOADING FILE");
+            // let end = moment();
+            // let diff = end.diff(start);
+            // let f = moment.utc(diff).format("HH:mm:ss.SSS");
 
-            console.log(`Upload successful for ${formData} in time ${f}`);
-            print(to_upload)
-            print(queue)
+            // console.log(`Upload successful for ${formData} in time ${f}`);
+            // print(to_upload)
+            // print(queue)
 
-            print("THIS IS THE DATA YOOO")
-            print(data)
+            // print("THIS IS THE DATA YOOO")
+            // print(data)
 
-            to_upload.forEach((file) => {
-              console.log("in to_upload for each")
-              uploadCompleted(file.name);
-              lambda_needed = file.size * 15/50000000;
-              queue_obj = {
-                name: file.name,
-                size: file.size,
-                done: 0,
-                need: lambda_needed
-              }
-              queue[file.name] = queue_obj;
-              print(queue)
-            });
-            document.getElementById("file-upload-btn").disabled = false;
+            // to_upload.forEach((file) => {
+            //   console.log("in to_upload for each")
+            //   uploadCompleted(file.name);
+            //   lambda_needed = file.size * 15/50000000;
+            //   queue_obj = {
+            //     name: file.name,
+            //     size: file.size,
+            //     done: 0,
+            //     need: lambda_needed
+            //   }
+            //   queue[file.name] = queue_obj;
+            //   print(queue)
+            // });
+            // document.getElementById("file-upload-btn").disabled = false;
         },
         xhr: function() {
           // create an XMLHttpRequest

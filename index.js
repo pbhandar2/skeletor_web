@@ -135,6 +135,9 @@ app.get('/traces/:traceId', (req, res) => {
 
 app.post('/traces/:traceId', function(req, res){
 
+  const start = moment();
+	const timestamp = new Date().valueOf();
+
 	// create an incoming form object
 	var form = new formidable.IncomingForm({
 	  uploadDir: __dirname + '/uploads',  // don't forget the __dirname here
@@ -147,11 +150,31 @@ app.post('/traces/:traceId', function(req, res){
 	form.multiples = true;
 	form.maxFileSize = 2097314290000;
 
+
   console.log("POST REQUEST MADE!");
 
   // when the file is uploaded
   form.on('file', function(field, file) {
     console.log("Inside form on file.");
+
+    form.uploadDir = path.join(__dirname, '/uploads/' + req.params.traceId + "/" + file.name + "_" + timestamp);
+
+    // create the directory if it doesn't exist
+  	try {
+		    fs.mkdirSync(`./uploads/${req.params.traceId}`);
+		} catch (err) {
+		    if (err.code !== 'EEXIST') throw err
+		}
+
+    try {
+		    fs.mkdirSync(`./uploads/${req.params.traceId}/${file.name}_${timestamp}`);
+		} catch (err) {
+		    if (err.code !== 'EEXIST') throw err
+		}
+
+    fs.rename(file.path, path.join(form.uploadDir, file.name), (error) => {
+    });
+
   });
 
   // log any errors that occur

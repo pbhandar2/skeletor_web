@@ -3,21 +3,22 @@ $(document).ready(function() {
 
     e.preventDefault();
 
-    // rendering the list of files if it isn't already there 
+    // rendering the list of files if it isn't already there
     if (!document.getElementById("file-list-container")) {
-      renderFileListContainer(); 
+      renderFileListContainer();
     }
 
     // disabling the file upload button
-    //document.getElementById("file-upload-btn").disabled = true;
     $("#file-upload-btn").prop("disabled", true)
+
+    console.log("Inside file-upload change function")
 
     // tracking the time it took for the file to upload
     let start = moment();
     const current_url = window.location.href;
     const id = current_url.split("/").pop();
     var files = $('.input-file').get(0).files;
- 
+
     // making a list of files that are to be uploaded
     let to_upload = [];
     for (var i = 0; i < files.length; i++) {
@@ -49,7 +50,8 @@ $(document).ready(function() {
             let end = moment();
             let diff = end.diff(start);
             let f = moment.utc(diff).format("HH:mm:ss.SSS");
-            console.log(`Upload successful for ${data} in time ${f}`);
+            
+            console.log(`Upload successful for ${formData} in time ${f}`);
 
             to_upload.forEach((file) => {
               uploadCompleted(file.name);

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="/css/chart.css">
+    <link rel="stylesheet" href="/css/trace_page.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+    <script type="text/javascript">
+      // retrieving these value in here so that other js files can use it
+      const files = <%- JSON.stringify(trace.files) %>;
+      const queue = <%- JSON.stringify(trace.queue) %>;
+      const id = "<%= trace.id %>";
+      var getUrl = window.location;
+      var baseUrl = getUrl.protocol + "//" + getUrl.host;
+      console.log(baseUrl)
+      console.log(files);
+      const trace = <%- JSON.stringify(trace) %>;
+      console.log(trace);
+    </script>
+    <script src="/js/trace_page.js" "trace_id"=id></script>
+    <script src="/js/main.js"></script>
+  </head>
+
+  <body>
+    <%- include("shared/navbar", { login: userId }) %>
+
+    <div class="container">
+      <div class="alert alert-danger" id="message-container" role="alert" style="display: none; ">
+        <span id="message"></span>
+        <button class="close" id="close-message-container"><span aria-hidden="true">&times;</span></button>
+      </div>
+
+      <div class="alert alert-success" id="new_data_alert" style="display: none;">
+        <div>
+          <strong>Success!</strong> Metric Calculation completed. <a class="reload_button">Click here</a> to refresh page.
+        </div>
+      </div>
+
+      <div class="row card">
+        <div class="col-xs-10">
+          <p class="title-text"><%= trace.name %></p>
+          <p class="content-text"><%= trace.description %></p>
+          <p class="content-text">Uploader: <%= trace.ownerEmail %></p>
+        </div>
+        <% if(userId && (userId.id == trace.ownerId)){ %>
+          <div class="col-xs-2">
+            <div class="row button-container">
+              <button type="button" class="btn btn-danger content-text float-right" id="deleteTrace">Delete</button>
+            </div>
+            <div class="row button-container">
+              <% if(trace.display == "true"){ %>
+                <button type="button" class="btn btn-warning float-right" id="toggleDisplay">Make Public</button>
+              <% } else{ %>
+                <button type="button" class="btn btn-warning float-right" id="toggleDisplay">Make Private</button>
+              <% } %>
+            </div>
+          </div>
+        <% } %>
+      </div>
+      <% if(userId && (userId.id == trace.ownerId)){ %>
+         <div class="row card">
+           <div class="col-xs-12">
+            <div class="row">
+               <div class="panel panel-default">
+                 <div class="panel-body">
+                   <span class="glyphicon glyphicon-cloud-upload"></span>
+                   <div class="progress">
+                     <div class="progress-bar" id="upload-bar" style="background-color: green;" role="progressbar">
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
+             <div class="row">
+               <form ref='uploadForm'
+                 id='uploadForm'
+                 encType="multipart/form-data">
+                   <input type="file"  class="input-file" multiple="multiple" />
+                   <button type="submit" id="file-upload-btn" class="upload-btn">Submit</button>
+               </form>
+            </div>
+           </div>
+         </div>
+        <div class="row card">
+          <p class="title-text" id="metric-status">No Metric Calculation in Progress.</p>
+          <div class="progress position-relative metric-progress-container" style="height: 30px; text-align: center;">
+              <div class="progress-bar" role="progressbar" id="metric-bar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100"></div>
+
+          </div>
+        </div>
+      <% } else{ %>
+      <% } %>
+
+    <% if(!trace.files.length){ %>
+    <div class="row card"><h3 id="no-data-message"></h3></div>
+
+    <% } else{ %>
+
+    <div class="row card loading-container"><h2 id="loading"></h2></div>
+
+    <% } %>
+
+    <div class="row card" id="chart-container">
+      <div class="col-xs-12">
+        <div class="row" id="chart-main"><svg id="svg1" width="1100" height="600"></svg></div>
+        <div class="row">
+          <select id="add_metric_value"></select>
+          <button id="add_metric">Add Metric</button>
+        </div>
+        <div id="selected_metrics"></div>
+      </div>
+    </div>
+
+
+    <div class="row card">
+      <p class="title-text">Files</p>
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          <%  for(let i = 0; i < trace.files.length; i++) { %>
+            <tr>
+              <td><%= trace.files[i].name %></td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+
+    </div>
+   </div>
+   <%- include("shared/footer") %>
+   <script src="/js/chart.js"></script>
+ </body>
+
+</html>

@@ -190,7 +190,6 @@ async function process_trace(file_object, id, io) {
 						outStream.end(); // end the current outstream 
 
 						line_count = 0; // reset the line count 
-						file_count += 1; // update the count of the number of pieces of the given file 
 
 						// the key to upload file to S3
 						key = `${id}/${file_name}_${timestamp}/parts/${file_count}`
@@ -198,6 +197,8 @@ async function process_trace(file_object, id, io) {
 						// Call the upload file main function which handles uploading file to S3 and calling lambda 
 						upload_and_process_promise = upload_and_process(output_file_name, key, io, id, timestamp, file_name, start_date_string);
 
+						file_count += 1; // update the count of the number of pieces of the given file 
+						
 						// new output file name and the output stream for it 
 						output_file_name = `${app_dir}/uploads/${id}/${file_name}_${timestamp}/` + file_count;
 						outStream = fs.createWriteStream(output_file_name);

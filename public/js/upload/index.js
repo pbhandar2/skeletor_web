@@ -1,10 +1,10 @@
-// Hiding the containers in the beginning 
+// Hiding the containers in the beginning
 document.getElementById("chart-container").hidden = true;
 
 
-console.log(trace);
+// console.log(trace);
 
-// check if there is the need to render the file list 
+// check if there is the need to render the file list
 if (files.length || Object.keys(queue).length) {
 	// console.log("need to render");
 	// console.log(queue);
@@ -19,9 +19,9 @@ $(document).ready(function() {
 	$('#deleteTrace').on('click', function (e){
 
 	const delete_bool = confirm('Are you sure you want to delete the trace?');
-	if (delete_bool == true)  
-		$.post(`/deletetrace/${id}`, function(data) { 
-			if (data == "done") $(location).attr('href', '/traces') 
+	if (delete_bool == true)
+		$.post(`/deletetrace/${id}`, function(data) {
+			if (data == "done") $(location).attr('href', '/traces')
 		});
 
 	});

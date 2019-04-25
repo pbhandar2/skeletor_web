@@ -12,6 +12,19 @@ const aws_service = require(`${app_dir}/modules/aws.js`);
 const lambda = aws_service.lambda();
 const s3 = aws_service.s3();
 
+/*
+	This function get the start data from the trace file. 
+
+	This is done because the file is going to be fragmented into multiple pieces and the data in the file is relative time. So only the first piece of the trace will have information regarding the date. 
+
+	Also different formats have date expressed differently in different places. 
+
+	One assumptiont that it makes is that it is within the first 10 lines. If not, it will not process further. 
+
+	Params:
+		file_loc: location of the file to be processed 
+
+*/
 async function get_trace_start_date(file_loc) {
 
 	return await new Promise((resolve, reject) => {
@@ -53,6 +66,10 @@ async function get_trace_start_date(file_loc) {
 
 		});
 	});
+}
+
+async function upload_file_main() {
+	
 }
 
 
@@ -178,13 +195,13 @@ async function process_trace(file_object, id, io) {
 					resolve(1);
 				});
 			}).catch((err) => {
-				console.log(`this error is from getting trace start date`);
+				console.log(`Error in function get_trace_start_date`);
 				console.log(err);
 			});
 		}
 		catch(err) {
 			console.log(err);
-			console.log("try catch in process trace");
+			console.log("Error in function process_trace");
 			reject();
 		}
 	});

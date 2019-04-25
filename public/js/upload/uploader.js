@@ -66,6 +66,9 @@ $(document).ready(function() {
             print(to_upload)
             print(queue)
 
+            print("THIS IS THE DATA YOOO")
+            print(data)
+
             to_upload.forEach((file) => {
               console.log("in to_upload for each")
               uploadCompleted(file.name);

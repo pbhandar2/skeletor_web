@@ -150,7 +150,7 @@ app.post('/traces/:traceId', function(req, res){
   // when the file is uploaded
   form.on('file', function(field, file) {
     console.log("Inside form on file.");
-  }
+  });
 
   // log any errors that occur
 	form.on('error', function(err) {

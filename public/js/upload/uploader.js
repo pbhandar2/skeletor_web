@@ -27,6 +27,9 @@ $(document).ready(function() {
       to_upload.push({ "name": files[i].name, "size": files[i].size });
     }
 
+    console.log("TO UPLOAD")
+    console.log(to_upload)
+
     if (files.length > 0){
       var formData = new FormData();
 
@@ -54,6 +57,7 @@ $(document).ready(function() {
             console.log(`Upload successful for ${formData} in time ${f}`);
 
             to_upload.forEach((file) => {
+              console.log("in to_upload for each")
               uploadCompleted(file.name);
               lambda_needed = file.size * 15/50000000;
               queue_obj = {

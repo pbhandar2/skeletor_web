@@ -38,6 +38,14 @@ $(document).ready(function() {
         var file = files[i];
         file.id = id;
         formData.append('uploads[]', file, file.name);
+        lambda_needed = file.size * 15/50000000;
+        queue_obj = {
+          name: file.name,
+          size: file.size,
+          done: 0,
+          need: lambda_needed
+        }
+        queue[file.name] = queue_obj;
       }
 
       formData.id = id;

@@ -63,13 +63,70 @@ async function get_trace_start_date(file_loc) {
 			}
 
 			line_count++;
-
 		});
 	});
 }
 
-async function upload_file_main() {
-	
+/*
+	This function upload a piece of the file and calls lambda to process it.  
+
+	Params:
+		output_file_name: location of the file to be uploaded and processed  
+		key: the key of the file in S3
+		io: io object to make socket events happen 
+		id: id of the trace the file belongs to 
+		timestamp: the timestamp associated with this file
+		file_name: the name of the file 
+		start_date_string: the start date of the file 
+*/
+async function upload_and_process(output_file_loc, key, io, id, timestamp, file_name, start_date_string) {
+	return await new Promise((resolve, reject) => {
+		// upload the current file 
+		const upload_file_promise = upload_file(output_file_loc, key);
+
+		// once the file is uploaded
+		upload_file_promise.then((file_loc) => {
+
+			// once the file is uploaded now you can remove it 
+			fs.unlinkSync(file_loc);
+
+			// get the file number so that we can tell the lambda function which file to process 
+			const split_file_name = file_loc.split("/");
+			const file_number = split_file_name[split_file_name.length-1];
+
+			// create a payload for the lambda function 
+			const payload = {
+			  "key": `${id}/${file_name}_${timestamp}/parts/${file_number}`,
+			  "id": id,
+			  "file": file_name,
+			  "part": `${file_number}`,
+			  "start_date": start_date_string,
+			  "date": start_date_string, // THIS IS REDUNDANT NEED TO CHECK WHY THIS IS HERE 
+			  "timestamp": timestamp
+			};
+
+			// call the lambda function with the above payload 
+			const lambda_promise = call_lambda(payload, "arn:aws:lambda:us-east-2:722606526443:function:GPFS_IBM_process");
+
+			// once the lambda is completed 
+			lambda_promise.then((flag) => {
+
+				// sending the update to the client side where it will increase the progress bar 
+				if (io) {
+					//console.log(`Socket: lambda_${id}`);
+					io.emit(`lambda_${id}`, file_name);
+				}
+				resolve(1);
+
+			});
+
+		}).catch((err) => {
+			console.log("Error from function upload_file");
+			console.log(err);
+			reject(err);
+		});
+
+	});
 }
 
 
@@ -122,96 +179,153 @@ async function process_trace(file_object, id, io) {
 
 				// each line is placed on its proper part file
 				lineReader.on('line', function(line) {
+
+					// incrementing the line count and writing the line to the output stream which is the current piece of the file being created
 					line_count++;
 					outStream.write(line + '\n');
+
+					// if the number of lines in the file reaches a certain threshold then break and move on to the next file 
 					if (line_count > 400000) {
-						outStream.end();
-						const upload_file_promise = upload_file(output_file_name, `${id}/${file_name}_${timestamp}/parts/${file_count}`);
-						line_count = 0;
-						file_count++;
+
+						outStream.end(); // end the current outstream 
+
+						line_count = 0; // reset the line count 
+						file_count += 1; // update the count of the number of pieces of the given file 
+
+						// the key to upload file to S3
+						key = `${id}/${file_name}_${timestamp}/parts/${file_count}`
+
+						// Call the upload file main function which handles uploading file to S3 and calling lambda 
+						upload_and_process_promise = upload_and_process(output_file_name, key, io, id, timestamp, file_name, start_date_string);
+
+						// new output file name and the output stream for it 
 						output_file_name = `${app_dir}/uploads/${id}/${file_name}_${timestamp}/` + file_count;
 						outStream = fs.createWriteStream(output_file_name);
 
-						upload_file_promise.then((file_loc) => {
+						// once the file is uploaded and processed 
+						upload_and_process_promise.then((file_loc) => {
 
-							fs.unlinkSync(file_loc);
-							const split_file_name = file_loc.split("/");
-							const file_number = split_file_name[split_file_name.length-1];
+							console.log(`file_completed: ${file_completed}, file_count: ${file_count}, done: ${done}`);
 
-							const payload = {
-							  "key": `${id}/${file_name}_${timestamp}/parts/${file_number}`,
-							  "id": id,
-							  "file": file_name,
-							  "part": `${file_number}`,
-							  "start_date": start_date_string,
-							  "date": start_date_string,
-							  "timestamp": timestamp
-							};
+							file_completed++; // update the count of the number of files that have been processed 
 
-							const lambda_promise = call_lambda(payload, "arn:aws:lambda:us-east-2:722606526443:function:GPFS_IBM_process");
-							//const lambda_promise = call_lambda(payload, "arn:aws:lambda:us-east-2:722606526443:function:process_gpfs_trace");
-							lambda_promise.then((flag) => {
-								file_completed++;
+							// if the file completed is equal to the file count and the done flag is set which signifies that we are at the end of the file meaning the whole file has been read 
+							if (file_completed == file_count && done) {
+								done = 0; // just covering for race conditions, once it is in here it shouldn't be here again 
 
-								if (io) {
-									console.log(`io is called so calling lambda_${id}`);
-									io.emit(`lambda_${id}`, file_name);
+								console.log("COMPLETED UPLOADING ALL FILE!");
+
+								// payload for the combine json lambda call 
+								const get_final_json_payload = {
+									"id": id,
+									"file": file_name,
+									"timestamp": timestamp
 								}
-								console.log(`split: ${file_count}, completed: ${file_completed}, done: ${done}`);
-								if (file_completed == file_count && done) {
-									console.log("COMPLETED UPLOADING ALL FILE!");
-									const get_final_json_payload = {
-										"id": id,
-										"file": file_name,
-										"timestamp": timestamp
+
+								// calling lambda that combines all the metrics from different pieces 
+								const get_final_json_promise = call_lambda(get_final_json_payload, "arn:aws:lambda:us-east-2:722606526443:function:get_file_metrics");
+								get_final_json_promise.then((flag) => {
+									console.log("COMPLETED METRIC CALCULATION!")
+									if (io) {
+										io.emit(`calculation_done_${id}`);
 									}
-									const get_final_json_promise = call_lambda(get_final_json_payload, "arn:aws:lambda:us-east-2:722606526443:function:get_file_metrics");
-									get_final_json_promise.then((flag) => {
-										console.log("COMPLETED METRIC CALCULATION!")
-										if (io) {
-											io.emit(`calculation_done_${id}`);
-										}
-									}).catch((err) => {
-										console.log(err);
-									});
-								}
-							}).catch((err) => {
-								console.log(`the error is from process_gpfs_trace`);
-								console.log(err);
-							});
+									fs.unlinkSync(`${app_dir}/uploads/${id}/${file_name}_${timestamp}/${file_name}`);
+									resolve(1);
+								}).catch((err) => {
+									console.log("Error from function call_lambda when combining the individual traces.")
+									console.log(err);
+									reject(err);
+								});
+							}
 
 						}).catch((err) => {
-							console.log(`the error is from upload file`);
+							console.log(`Error from function upload_and_process`);
 							console.log(err);
+							reject(err);
 						});
 
 					}
 				});
 
+				// this means that the whole file has been read 
 				lineReader.on('close', function() {
-					gzip_read_stream.close();
+					file_count += 1;
+					gzip_read_stream.close(); // close the stream once the whole file has been read 
 					outStream.end();
 					done = 1;
+					
+					// uploading the processing the last piece 
+					key = `${id}/${file_name}_${timestamp}/parts/${file_count}`
+					upload_and_process_promise = upload_and_process(output_file_name, key, io);
+
+					upload_and_process_promise.then((file_loc) => {
+
+						console.log(`file_completed: ${file_completed}, file_count: ${file_count}, done: ${done}`);
+
+						file_completed++; // update the count of the number of files that have been processed 
+
+						if (file_completed == file_count && done) {
+
+							done = 0; 
+
+							console.log("COMPLETED UPLOADING ALL FILE!");
+
+							// payload for the lambda file to combine different traces 
+							const get_final_json_payload = {
+								"id": id,
+								"file": file_name,
+								"timestamp": timestamp
+							}
+
+							// calling lambda that combines all the metrics from different pieces 
+							const get_final_json_promise = call_lambda(get_final_json_payload, "arn:aws:lambda:us-east-2:722606526443:function:get_file_metrics");
+							get_final_json_promise.then((flag) => {
+								console.log("COMPLETED METRIC CALCULATION!")
+								if (io) {
+									io.emit(`calculation_done_${id}`);
+								}
+								fs.unlinkSync(`${app_dir}/uploads/${id}/${file_name}_${timestamp}/${file_name}`);
+								resolve(1);
+							}).catch((err) => {
+								console.log("Error from function call_lambda when combining the individual traces.")
+								console.log(err);
+								reject(err);
+							});
+						}
+					});
+
 					resolve(1);
 				});
 			}).catch((err) => {
 				console.log(`Error in function get_trace_start_date`);
 				console.log(err);
+				reject(err);
 			});
 		}
 		catch(err) {
 			console.log(err);
 			console.log("Error in function process_trace");
-			reject();
+			reject(err);
 		}
 	});
 
 }
 
+/*
+	This function uploads the file in a given location to S3 with the given key. 
+
+	Params:
+		file_loc: the location of the file to be uploaded
+		key: the key for the file in S3
+
+*/
 async function upload_file(file_loc, key) {
 
 	return await new Promise((resolve, reject) => {
+
 		let uploadParams = { Bucket: 'fstraces', Key: key , Body: ''};
+
+		// create a filestream for upload to S3
 		const fileStream = fs.createReadStream(file_loc);
 		fileStream.on('error', function(err) {
 			reject(err);
@@ -225,9 +339,18 @@ async function upload_file(file_loc, key) {
 
 }
 
+
+/*
+	This function calls the lambda function with a given payload and funciton arn. 
+
+	Params:
+		payload: the parameters to be sent to the lambda function
+		function_arn: the arn of the function to be called 
+
+*/
 async function call_lambda(payload, function_arn) {
 
-	console.log(`calling arn: ${function_arn}`);
+	// console.log(`calling arn: ${function_arn}`);
 
 	return await new Promise((resolve, reject) => {
 		var lambda_params = {

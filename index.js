@@ -216,6 +216,8 @@ app.post('/traces/:traceId', function(req, res){
 		}
     });
 
+    res.send({"done": 1});
+
   });
 
   // log any errors that occur

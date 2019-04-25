@@ -319,10 +319,10 @@ module.exports.set = function (app) {
       	uploadedOn: new Date().toString()
   	}
 
-  	const item_uploads_path = "./uploads/" + item_object.id;
+  	const item_uploads_path = "../uploads/" + item_object.id;
   	fs.mkdirSync(item_uploads_path);
 
-  	const create_trace_promise = require("./library/aws").create_trace(item_object);
+  	const create_trace_promise = require("../library/aws").create_trace(item_object);
   	create_trace_promise.then((flag) => {
   		const link = `/traces/${item_object.id}`;
   		res.redirect(link);

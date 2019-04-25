@@ -11,7 +11,7 @@ $(document).ready(function() {
     // disabling the file upload button
     $("#file-upload-btn").prop("disabled", true)
 
-    console.log("Inside file-upload change function")
+    //console.log("Inside file-upload change function")
 
     // tracking the time it took for the file to upload
     let start = moment();
@@ -50,7 +50,7 @@ $(document).ready(function() {
             let end = moment();
             let diff = end.diff(start);
             let f = moment.utc(diff).format("HH:mm:ss.SSS");
-            
+
             console.log(`Upload successful for ${formData} in time ${f}`);
 
             to_upload.forEach((file) => {

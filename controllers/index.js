@@ -1,11 +1,11 @@
-var fs = require('fs');
-var redis   = require("redis");
-var moment = require('moment');
-var session = require('express-session');
-var redisStore = require('connect-redis')(session);
-var formidable = require('formidable');
-
 module.exports.set = function (app) {
+
+  var fs = require('fs');
+  var redis   = require("redis");
+  var moment = require('moment');
+  var session = require('express-session');
+  var redisStore = require('connect-redis')(session);
+  var formidable = require('formidable');
 
   // FLASH MODULE
   const flash = require('connect-flash');

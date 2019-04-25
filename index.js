@@ -147,6 +147,21 @@ app.post('/traces/:traceId', function(req, res){
 
   console.log("POST REQUEST MADE!");
 
+  // when the file is uploaded
+  form.on('file', function(field, file) {
+    console.log("Inside form on file.");
+  }
+
+  // log any errors that occur
+	form.on('error', function(err) {
+		console.log('An error has occured during file upload: \n' + err);
+	});
+
+	// once all the files have been uploaded, send a response to the client
+	form.on('end', function() {
+	   console.log("file upload sucessfull");
+	});
+
   // form.parse(req);
   //
 	// const start = moment();

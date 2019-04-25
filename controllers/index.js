@@ -1,8 +1,9 @@
 var fs = require('fs');
 var redis   = require("redis");
-
+var moment = require('moment');
 var session = require('express-session');
 var redisStore = require('connect-redis')(session);
+var formidable = require('formidable');
 
 module.exports.set = function (app) {
 
@@ -319,7 +320,7 @@ module.exports.set = function (app) {
       	uploadedOn: new Date().toString()
   	}
 
-  	const item_uploads_path = "../uploads/" + item_object.id;
+  	const item_uploads_path = "./uploads/" + item_object.id;
   	fs.mkdirSync(item_uploads_path);
 
   	const create_trace_promise = require("../library/aws").create_trace(item_object);

@@ -48,7 +48,7 @@ const flash = require('connect-flash');
 app.use(flash());
 
 // AWS MODULE
-const aws_service = require('../modules/aws.js');
+const aws_service = require('./modules/aws.js');
 const ddb = aws_service.ddb();
 const ddb_main = aws_service.ddb_main();
 const lambda = aws_service.lambda();
@@ -68,7 +68,7 @@ app.use(session({
 
 // PASSPORT MODULE
 var passport = require('passport');
-require('../modules/passport')(passport);
+require('./modules/passport')(passport);
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -166,13 +166,13 @@ app.post('/traces/:traceId', function(req, res){
 
     // create the directory if it doesn't exist
     try {
-        fs.mkdirSync(`../uploads/${req.params.traceId}`);
+        fs.mkdirSync(`./uploads/${req.params.traceId}`);
     } catch (err) {
         if (err.code !== 'EEXIST') throw err
     }
 
     try {
-        fs.mkdirSync(`../uploads/${req.params.traceId}/${file.name}_${timestamp}`);
+        fs.mkdirSync(`./uploads/${req.params.traceId}/${file.name}_${timestamp}`);
     } catch (err) {
         if (err.code !== 'EEXIST') throw err
     }

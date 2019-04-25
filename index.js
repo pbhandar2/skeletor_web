@@ -141,6 +141,8 @@ app.post('/traces/:traceId', function(req, res){
 	  keepExtensions: true
 	});
 
+  form.parse(req);
+
 	// specify that we want to allow the user to upload multiple files in a single request
 	form.multiples = true;
 	form.maxFileSize = 2097314290000;

@@ -10,7 +10,7 @@ const ddb = aws_service.ddb();
 // getting the block size from settings.json
 const settings = fs.readFileSync(`${app_dir}/settings.json`);
 const settings_json = JSON.parse(settings);
-const blockSize = settings_json.block_size;
+const blockSize = 50000000;
 
 
 async function add_trace(traceObject) {
@@ -60,7 +60,7 @@ async function remove_trace(traceId) {
 	});
 }
 
-async function add_file(file, traceId, io) {
+async function add_file(file, traceId, io, timestamp) {
 	return await new Promise((resolve, reject) => {
 
 		/*
@@ -70,10 +70,11 @@ async function add_file(file, traceId, io) {
 		const fileSize = file.size;
 		const estExtractedFileSize = fileSize * 15;
 		const numBlocks = Math.ceil(estExtractedFileSize/blockSize);
+		const fileName = `${file.name}_${file.timestamp}`;
 
 		if (io) {
-			console.log(`io is called so calling extract_${traceId}`);
-			io.emit(`extract_${traceId}`, numBlocks);
+			//console.log(`io is called so calling extract_${traceId}`);
+			io.emit(`extract_${traceId}`, file.name, file.timestamp, file.size, 0);
 		}
 
 		// console.log("we are in aws add file")
@@ -85,16 +86,16 @@ async function add_file(file, traceId, io) {
 			TableName: "traces",
 			Key: { "id": String(traceId) },
 			ExpressionAttributeNames: {
-				'#file_name': file.name,
+				'#file_name': fileName,
 				'#queue': 'queue'
 			},
-			ConditionExpression: 'attribute_not_exists(#queue.#file_name)',
+			//ConditionExpression: 'attribute_not_exists(#queue.#file_name)',
 			ExpressionAttributeValues: {
 				':file_object': {
-					'name': String(file.name),
+					'name': String(fileName),
 					'size': String(file.size),
-					'done': "0",
-					'need': String(numBlocks),
+					'done': 0,
+					'need': numBlocks,
 				}
 			},
 			UpdateExpression: 'set #queue.#file_name = :file_object'

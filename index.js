@@ -140,6 +140,110 @@ app.get('/traces/:traceId', (req, res) => {
   });
 });
 
+app.get('/traceprofile/:traceId', (req, res) => {
+  const params = {
+    ExpressionAttributeValues: {
+      ":id": req.params.traceId
+    },
+    KeyConditionExpression: "id = :id",
+    TableName: "traces"
+  }
+  ddb.query(params, function(err, data) {
+    if (err) res.render('error', { 'userId': (req.session) ? req.session.key : null, 'errorMessage': 'Error connecting to the database.' })
+    else {
+      if (data.Items[0]) res.render('trace_profile/home', { 'trace': data.Items[0], 'userId': (req.session) ? req.session.key : null  })
+      else res.render('error', { 'userId': (req.session) ? req.session.key : null, 'errorMessage': 'The trace does not exist in the database.' })
+    }
+  });
+});
+
+app.post('/traceprofile/:traceId', (req, res) => {
+
+  const start = moment();
+  const timestamp = new Date().valueOf();
+
+  // create an incoming form object
+  let form = new formidable.IncomingForm({
+    uploadDir: __dirname + '/uploads',  // don't forget the __dirname here
+    keepExtensions: true
+  });
+  form.parse(req);
+
+  // specify that we want to allow the user to upload multiple files in a single request
+  form.multiples = true;
+  form.maxFileSize = 2097314290000;
+
+  // when a file is detected
+  form.on('file', function(field, file) {
+    form.uploadDir = path.join(__dirname, '/uploads/' + req.params.traceId + "/" + file.name + "_" + timestamp);
+
+    // create the directory if it doesn't exist
+    try {
+        fs.mkdirSync(`./uploads/${req.params.traceId}`);
+    } catch (err) {
+        if (err.code !== 'EEXIST') throw err
+    }
+
+    try {
+        fs.mkdirSync(`./uploads/${req.params.traceId}/${file.name}_${timestamp}`);
+    } catch (err) {
+        if (err.code !== 'EEXIST') throw err
+    }
+
+    fs.rename(file.path, path.join(form.uploadDir, file.name), (error) => {
+      if (error) console.log("An error occured while renaming and moving the file." + error);
+      else {
+
+        // file object to be added to the trace database 
+        const file_object = {
+          "name": file.name,
+          "size": file.size,
+          "timestamp": timestamp,
+          "path": `/uploads/${req.params.traceId}/${file.name}_${timestamp}/${file.name}`
+        };
+
+        const aws = require("./library/aws"); // get the aws object
+        const add_file_promise = aws.add_file(file_object, req.params.traceId, io, timestamp); // add the file to the trace db object 
+
+        // waiting for the file to be added to the database
+        add_file_promise.then((flag) => {
+          // creating the traceProcessor object 
+          const traceProcessor = require("./library/traceProcessor");
+
+          // passing the file to the trace processor for processing 
+          const process_trace_file_promise = traceProcessor.processTraceFile(file_object, req.params.traceId, io);
+          process_trace_file_promise.then((flag) => {
+            let end = moment();
+            let diff = end.diff(start);
+            let f = moment.utc(diff).format("HH:mm:ss.SSS");
+            console.log(f);
+          }).catch((err) => {
+            console.log(err);
+          });
+
+        }).catch((err) => {
+          console.log(err);
+        });
+
+      }
+    });
+
+
+  });
+
+  // when the file is uploaded
+  form.on('end', function(field, file) {
+    console.log("File upload sucessfull.");
+    res.send("done");
+  });
+
+  // when there is an error
+  form.on('error', function(field, file) {
+    console.log("Error during file upload.");
+  });
+
+});
+
 app.post('/traces/:traceId', function(req, res){
 
   const start = moment();
@@ -230,6 +334,30 @@ app.post('/traces/:traceId', function(req, res){
      console.log("file upload sucessfull");
   });
 
+});
+
+app.post('/testup', function(req, res) {
+  // create an incoming form object
+  var form = new formidable.IncomingForm({
+    uploadDir: __dirname + '/uploads',  // don't forget the __dirname here
+    keepExtensions: true
+  });
+  form.parse(req);
+
+  // specify that we want to allow the user to upload multiple files in a single request
+  form.multiples = true;
+  form.maxFileSize = 2097314290000;
+
+	// when the file is uploaded
+	form.on('file', function(field, file) {
+		console.log(file);
+		console.log(field);
+	});
+
+  // once all the files have been uploaded, send a response to the client
+  form.on('end', function() {
+     console.log("file upload sucessfull");
+  });
 });
 
 app.get('/signup', function(req, res) {

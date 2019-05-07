@@ -79,7 +79,7 @@ async function get_trace_start_date(file_loc) {
 		file_name: the name of the file 
 		start_date_string: the start date of the file 
 */
-async function upload_and_process(output_file_loc, key, io, id, timestamp, file_name, start_date_string) {
+async function upload_and_process(output_file_loc, key, io, id, timestamp, file_name, start_date_string, size, file_completed) {
 	return await new Promise((resolve, reject) => {
 		// upload the current file 
 		const upload_file_promise = upload_file(output_file_loc, key);
@@ -111,11 +111,7 @@ async function upload_and_process(output_file_loc, key, io, id, timestamp, file_
 			// once the lambda is completed 
 			lambda_promise.then((flag) => {
 
-				// sending the update to the client side where it will increase the progress bar 
-				if (io) {
-					//console.log(`Socket: lambda_${id}`);
-					io.emit(`lambda_${id}`, file_name);
-				}
+
 				resolve(1);
 
 			});
@@ -148,6 +144,7 @@ async function process_trace(file_object, id, io) {
 	const file_name = file_object.name;
 	const path = file_object.path;
 	const timestamp = file_object.timestamp;
+	const size = file_object.size;
 
 	// This is the promise in order to process the file. 
 	return await new Promise((resolve, reject) => {
@@ -194,8 +191,10 @@ async function process_trace(file_object, id, io) {
 						// the key to upload file to S3
 						key = `${id}/${file_name}_${timestamp}/parts/${file_count}`
 
+						console.log(key);
+
 						// Call the upload file main function which handles uploading file to S3 and calling lambda 
-						upload_and_process_promise = upload_and_process(output_file_name, key, io, id, timestamp, file_name, start_date_string);
+						upload_and_process_promise = upload_and_process(output_file_name, key, io, id, timestamp, file_name, start_date_string, size, file_completed);
 
 						file_count += 1; // update the count of the number of pieces of the given file 
 						
@@ -209,6 +208,12 @@ async function process_trace(file_object, id, io) {
 							console.log(`file_completed: ${file_completed}, file_count: ${file_count}, done: ${done}`);
 
 							file_completed++; // update the count of the number of files that have been processed 
+
+							// sending the update to the client side where it will increase the progress bar 
+							if (io) {
+								//console.log(`Socket: lambda_${id}`);
+								io.emit(`lambda_${id}`, file_name, timestamp, size, file_completed);
+							}
 
 							// if the file completed is equal to the file count and the done flag is set which signifies that we are at the end of the file meaning the whole file has been read 
 							if (file_completed == file_count && done) {
@@ -250,15 +255,15 @@ async function process_trace(file_object, id, io) {
 
 				// this means that the whole file has been read 
 				lineReader.on('close', function() {
-					file_count += 1;
+					
 					gzip_read_stream.close(); // close the stream once the whole file has been read 
 					outStream.end();
 					done = 1;
 					
 					// uploading the processing the last piece 
 					key = `${id}/${file_name}_${timestamp}/parts/${file_count}`
-					upload_and_process_promise = upload_and_process(output_file_name, key, io);
-
+					upload_and_process_promise = upload_and_process(output_file_name, key, io, id, timestamp, file_name, start_date_string, size, file_completed);
+					file_count += 1;
 					upload_and_process_promise.then((file_loc) => {
 
 						console.log(`file_completed: ${file_completed}, file_count: ${file_count}, done: ${done}`);
@@ -283,7 +288,7 @@ async function process_trace(file_object, id, io) {
 							get_final_json_promise.then((flag) => {
 								console.log("COMPLETED METRIC CALCULATION!")
 								if (io) {
-									io.emit(`calculation_done_${id}`);
+									io.emit(`calculation_done_${id}`, file_name, timestamp);
 								}
 								fs.unlinkSync(`${app_dir}/uploads/${id}/${file_name}_${timestamp}/${file_name}`);
 								resolve(1);
@@ -351,7 +356,8 @@ async function upload_file(file_loc, key) {
 */
 async function call_lambda(payload, function_arn) {
 
-	// console.log(`calling arn: ${function_arn}`);
+	console.log(`calling arn: ${function_arn}`);
+	console.log(payload);
 
 	return await new Promise((resolve, reject) => {
 		var lambda_params = {

@@ -71,3 +71,5 @@ function removeAnalysisProgressBar(fileName) {
 	progressBarContainer.remove();
 }
 
+
+

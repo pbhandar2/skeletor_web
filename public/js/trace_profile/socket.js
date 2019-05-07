@@ -10,13 +10,6 @@ const calculation_done_socket_name = `calculation_done_${id}`;
 const start_analysis = `extract_${id}`;
 
 /*
-The function creates a progress bar for analysis. 
-*/
-function traceProcessStart() {
-
-}
-
-/*
 This function increments the progress value in the progress bar. 
 */
 function incrementProgress(fileName, timestamp, size, completed) {

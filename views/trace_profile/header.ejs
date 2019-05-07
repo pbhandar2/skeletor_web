@@ -14,15 +14,16 @@
 		const trace = <%- JSON.stringify(trace) %>;
 		const id = trace.id;
 		const queue = trace.queue;
-		let files = <%- JSON.stringify(trace.files) %>;
+		const files = trace.files;
 
-		let analysis_meta = {};
+		// this object holds all the metadata necessary for a file 
+		var file_meta = {}
 
 		// stats that need to be tracked 
 		let numUploadSessions = 0;
 
 	</script>
-	<script src="/js/upload/chart_utils.js"></script>
+	
 	<script src="/js/trace_profile/socket.js"></script>
-	<script src="/js/upload/file_list.js"></script>
+
 </head>

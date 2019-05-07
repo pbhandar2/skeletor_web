@@ -6,21 +6,12 @@
 		<div class="container">
 			<%- include("banner.ejs", { userId: userId, trace: trace }) %>
 			<div class="row card" id="progressBarContainer"></div>
-			<div class="file-list-wrapper"></div>
-            <div class="row card">
-                <div class="col-xs-12" id="chart-container">
-                    <div class="row" id="chart-main">
-                        <svg id="svg1" width="1100" height="500"></svg>
-                    </div>
-                </div>
-            </div>
+			<div id="graphContainer"></div>
 		</div>
 		<script src="/js/trace_profile/uploader.js"></script>
 		<script src="/js/trace_profile/ui.js"></script>
+		<script src="/js/trace_profile/render_graph.js"></script>
+		<script src="/js/trace_profile/init.js"></script>
 	    <%- include("../shared/footer") %>
-	    <script src="/js/upload/index.js"></script>
-	    <script src="/js/trace_page/basic_graph_setup.js"></script>
-	    <!--<script src="/js/upload/io_size_histogram.js"></script>-->
-	    <script src="/js/trace_page/graph.js"></script>
 	</body>
 </html>

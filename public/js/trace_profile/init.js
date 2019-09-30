@@ -1,9 +1,18 @@
-console.log("init.js");
+// constants 
+const margin = {top: 20, right: 20, bottom: 110, left: 60},
+	margin2 = {top: 530, right: 20, bottom: 30, left: 40}
+	id = trace.id,
+	queue = trace.queue,
+	files = trace.files
+
+// this object holds all the metadata necessary for a file 
+var file_meta = {}
 
 // initiating metadata
 init_meta();
 
-renderFileListContainer();
+// render the graph conatiners
+renderGraphContainer();
 
 function init_meta() {
 
@@ -23,9 +32,9 @@ function init_meta() {
 				"lineChart": null
 			},
 			"metrics": [],
-			"colorScale": d3.scaleSequential(d3.interpolateWarm).domain([0, 25]),
-			"data": [],
-			"content": []
+			"lines": [],
+			"colorScale": d3.scaleSequential(d3.interpolateWarm).domain([0, 25]), // NOT SURE FIX THIS
+			"data": []
 		}
 		file_meta[`${file.name}_${file.timestamp}`] = meta;
 	});

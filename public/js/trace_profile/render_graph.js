@@ -1,12 +1,9 @@
 console.log("render_graph.js");
 
-
-
-
 /*
 	This function renders the containers that they need for file list
 */
-function renderFileListContainer() {
+function renderGraphContainer() {
 
 	// this is done to maintain the bootstrap consistency I cannot have
 	// a row inside a row I need to have a row then a column and then I
@@ -151,7 +148,7 @@ function addFile(file, file_status, fileCount) {
 	const graph_wrap = document.createElement("div");
 	graph_wrap.className = "row";
 	graph_wrap.id = `gwrap${fileCount}`;
-	graph_wrap.style.border = "red 5px solid";
+	//graph_wrap.style.border = "red 5px solid";
 
 	file_row.append(wrapper);
 	//file_row.append(graph_wrap);
@@ -168,8 +165,6 @@ function addFile(file, file_status, fileCount) {
 
 	loadGraph(fileCount, `${file.name}_${file.timestamp}`, file);
 
-	// console.log(file_meta);
-
 }
 
 
@@ -179,8 +174,6 @@ function loadGraph(fileCount, fileName, fileObject) {
 		.attr("width", 1100)
 		.attr("height", 500)
 		.attr("id", `svg${fileCount}`),
-		margin = {top: 20, right: 20, bottom: 110, left: 40},
-		margin2 = {top: 530, right: 20, bottom: 30, left: 40},
 		width = +svg.attr("width") - margin.left - margin.right,
 		height = +svg.attr("height") - margin.top - margin.bottom,
 		height2 = +svg.attr("height") - margin2.top - margin2.bottom;
@@ -229,15 +222,19 @@ function loadGraph(fileCount, fileName, fileObject) {
 	file_meta[fileName]["graph"]["focus"] = focus;
 	file_meta[fileName]["metrics"].push(fileObject.fields[0]);
 
-	//console.log(fileObject.fields)
+	var context = svg.append("g")
+		.attr("class", "context")
+		.attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
 
-	loadData(fileObject, fileName);
+	file_meta[fileName]["graph"]["context"] = context;
+
+	loadData(fileObject, fileName, fileCount);
 
 	
 
 }
 
-function loadData(fileObject, fileName) {
+function loadData(fileObject, fileName, fileCount) {
 
 	const fields = fileObject.fields;
 	const timestamp = fileObject.timestamp;
@@ -247,9 +244,6 @@ function loadData(fileObject, fileName) {
 	// THERE IS NO MIN MAX STORE
 
 	d3.json(url, function (error, d) {
-
-		console.log("in de")
-		console.log(file_meta)
 
 		const local_data = [];
 		const metric_value_range = {};
@@ -267,14 +261,14 @@ function loadData(fileObject, fileName) {
 
 			// converting from dict to array 
 			file_meta[fileName]["data"].push(to_push);
-			file_meta[fileName]["content"].push(to_push);
+			//file_meta[fileName]["content"].push(to_push);
 
 		});
 
 
 		data_final = file_meta[fileName]["data"]
 		
-		rescaleGraph(fileObject, fileName);
+		rescaleGraph(fileObject, fileName, fileCount);
 
 		return 1;
 
@@ -299,44 +293,101 @@ function addLine(metric, fileName) {
 
 }
 
-function rescaleGraph(fileObject, fileName) {
+function rescaleGraph(fileObject, fileName, fileCount) {
 
 	let cur_file_meta = file_meta[fileName];
-	let data = cur_file_meta.data
-
-	let date_collection = [];
-	date_collection = date_collection.concat(d3.extent(data, function(d) { return d.date; }));
+	let data = cur_file_meta.data;
 
 	let xAxis = file_meta[fileName]["graph"]["xAxis"];
 	let x = file_meta[fileName]["graph"]["x"];
+	let x2 = file_meta[fileName]["graph"]["x2"];
 	let y = file_meta[fileName]["graph"]["y"];
 	let yAxis = file_meta[fileName]["graph"]["yAxis"];
+
+	// height 
 	height = 370;
+	width = 910;
 
 	const colorScale = d3.scaleSequential(d3.interpolateWarm).domain([0, 25]);
 
-	console.log(d3.extent(date_collection));
-
-	x.domain(d3.extent(date_collection));
+	// append the x-axis
+	x.domain(d3.extent(data, function(d) { return d.date; }));
+	x2.domain(x.domain());
 	file_meta[fileName]["graph"]["focus"].append("g")
-		.attr("class", "axis axis--x")
-		.attr("id", "x-axis")
+		.attr("class", `axis axis--x-${fileCount}`)
+		.attr("id", `x-axis_${fileName}`)
 		.attr("transform", "translate(0," + height + ")")
 		.call(xAxis);
-	
-	y.domain([0, 1000]);
+
+	// append the y-axis
+	const yMax = getMaxYAxis(fileName);
+	y.domain([0, yMax]);
 	file_meta[fileName]["graph"]["focus"].append("g")
-		.attr("class", "axis axis--y")
-		.attr("id", "y-axis")
+		.attr("class", `axis axis--y-${fileCount}`)
+		.attr("id", `y-axis_${fileName}`)
 		.call(yAxis);
+
+	var zoom = d3.zoom()
+	    .scaleExtent([1, Infinity])
+	    .translateExtent([[0, 0], [width, height]])
+	    .extent([[0, 0], [width, height]])
+	    .on("zoom", function() {
+	    	console.log(fileName);
+	      	zoomed(fileName, fileCount);
+	    });
+
+	file_meta[fileName]["graph"]["svg"].append("rect")
+		.attr("class", "zoom")
+		.attr("width", width)
+		.attr("height", height)
+		.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+		.call(zoom);
 
 	let curSelect = file_meta[fileName]["metrics"][0];
 	const line = d3.line().x(function (d) { return x(d.date); }).y(function (d) { return y(d[curSelect]); });
+
+	file_meta[fileName]["lines"].push(line);
+
 	file_meta[fileName]["graph"]["lineChart"].append("path")
 		.datum(file_meta[fileName]["data"])
-		.attr("class", "line")
+		.attr("class", `line`)
 		.attr("id", `${fileName}_${curSelect}_main`)
 		.style("stroke", colorScale(1))
 		.attr("d", line);
+}
+
+function getMaxYAxis(fileName) {
+
+	let data = file_meta[fileName]["data"];
+	let metrics = file_meta[fileName]["metrics"]
+	max_value = 0;
+
+	data.forEach((d) => {
+		metrics.forEach((metric) => {
+			cur_value = d[metric]
+			if (cur_value > max_value) {
+				max_value = cur_value
+			}
+		})
+	});
+
+	return max_value
+}
+
+function zoomed(fileName, fileCount) {
+
+	if (d3.event.sourceEvent && d3.event.sourceEvent.type === "brush") return;
+
+	var t = d3.event.transform;
+
+	// transform the x-axis
+	file_meta[fileName]["graph"]["x"].domain(t.rescaleX(file_meta[fileName]["graph"]["x2"]).domain());
+
+	// transform the line 
+	line = file_meta[fileName]["lines"][0];
+	file_meta[fileName]["graph"]["lineChart"].select(`.line`).attr("d", line);
+
+	const xAxis = file_meta[fileName]["graph"]["xAxis"];
+	file_meta[fileName]["graph"]["focus"].select(`.axis--x-${fileCount}`).call(xAxis);
 
 }

@@ -233,6 +233,7 @@ function setUpGraph() {
       .attr("transform", "translate(0," + height2 + ")")
       .call(xAxis2);
 
+
   context.append("g")
       .attr("class", "brush")
       .call(brush)
@@ -364,6 +365,10 @@ function zoomed() {
   let rescale = t.rescaleX(x2).domain()
   start_time = rescale[0]
   end_time = rescale[1]
+
+
+  
+
   // console.log(rescale)
   // console.log("HERE IN RESCALE")
   // io_size_hist_init()

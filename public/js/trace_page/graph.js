@@ -233,6 +233,7 @@ function setUpGraph() {
       .attr("transform", "translate(0," + height2 + ")")
       .call(xAxis2);
 
+
   context.append("g")
       .attr("class", "brush")
       .call(brush)
@@ -358,12 +359,16 @@ function zoomed() {
   var t = d3.event.transform;
   x.domain(t.rescaleX(x2).domain());
 
-  console.log(t.rescaleX(x2).domain());
-  console.log("this is x domain set");
+  //console.log(t.rescaleX(x2).domain());
+  //console.log("this is x domain set");
 
   let rescale = t.rescaleX(x2).domain()
   start_time = rescale[0]
   end_time = rescale[1]
+
+
+  
+
   // console.log(rescale)
   // console.log("HERE IN RESCALE")
   // io_size_hist_init()
@@ -420,8 +425,8 @@ function zoomed() {
   }
   focus.select(".axis--x").call(xAxis);
   context.select(".brush").call(brush.move, x.range().map(t.invertX, t));
-  console.log(x.range().map(t.invertX, t));
-  console.log("this is the brush.");
+  //console.log(x.range().map(t.invertX, t));
+  //console.log("this is the brush.");
 }
 
 function getTotalMetrics() {

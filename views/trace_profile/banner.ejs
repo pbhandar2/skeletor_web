@@ -6,15 +6,11 @@
 	</div>
 	<% if(userId && (userId.id == trace.ownerId)){ %>
 		<div class="col-xs-2">
-			<div class="row button-container">
-				<form id="inputfileForm">
-					<input type="file"  style="visibility: hidden;" id="file-upload" class="input-file" multiple="multiple" />
+			<div class="row">
+				<form onSubmit="return uploadFile(this)">
+					<input type="file" id="fileUpload" class="inputFile" multiple="multiple" />
+					<input type="submit" value="Upload" />
 				</form>
-				<button id="file-upload-btn" class="btn btn-primary content-text float-right">
-				<label for="file-upload" style="display:inline;"">
-					Upload File
-				</label>
-				</button>
 			</div>
 			<div class="row button-container">
 				<button type="button" class="btn btn-danger content-text float-right" id="deleteTrace">Delete</button>

@@ -1,5 +1,5 @@
 var getUrl = window.location;
-var baseUrl = getUrl .protocol + "//" + getUrl.host + "/";
+var baseUrl = getUrl.protocol + "//" + getUrl.host + "/";
 
 var socket = io(baseUrl, {
 	transports: ['websocket']
@@ -12,6 +12,7 @@ socket.on(lambda_done_socket_name, function (file_name) {
 	//console.log("LMAMDA");
 	//console.log(file_name);
 	//console.log(queue);
+	// uploadCompleted(file_name);
 	queue[file_name]["done"] = parseInt(queue[file_name]["done"]) + 1;
 	const width = (queue[file_name]["done"]/queue[file_name]["need"]) * 100;
 	//console.log(document.getElementById(`${file_name}-progress`));

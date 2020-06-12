@@ -5,14 +5,20 @@
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css"> <!-- load bootstrap css -->
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
     <title>Skeletor</title>
+    <script type="text/javascript" src="/js/main.js"></script>
     <script type="text/javascript">
       const user = <%- JSON.stringify(user) %>;
       const queue = <%- JSON.stringify(queue) %>;
-      console.log(user);
-      console.log(queue);
+      $(document).ready(function() {  
+        user.traces.forEach(function(trace) {
+          //console.log(trace);
+          convertDate(trace.uploadedOn, trace.id);
+        });
+      });
     </script>
-    <script type="text/javascript" src="/js/main.js"></script>
+   
   </head>
 
   <body>
@@ -24,11 +30,11 @@
         <table class="table">
           <thead>
             <tr>
-              <th scope="col" title="Name of the trace set.">Name  <span>?</span></th>
+              <th scope="col" title="Name of the trace.">Name  <span>?</span></th>
               <th scope="col" title="The type of trace files. A type of a trace file confirms to a certain format hence is parsed accordingly.">Type  <span>?</span></th>
               <th scope="col" title="Email of the creater of the trace set.">Uploader  <span>?</span></th>
               <th scope="col" title="The number of files the trace set contains.">Number of files  <span>?</span></th>
-              <th scope="col" title="The date when the trace set was created.">Upload Date  <span>?</span></th>
+              <th scope="col" title="The date when the trace set was created.">Upload Date(PDT)  <span>?</span></th>
             </tr>
           </thead>
           <tbody>
@@ -38,7 +44,7 @@
                     <td><p  class="content-text"><%= trace.type %></p></td>
                     <td><p  class="content-text"><%= trace.ownerEmail %></p></td>
                     <td><p  class="content-text"><%= trace.files.length %></p></td>
-                    <td><p  class="content-text"><%= trace.uploadedOn %></p></td>
+                    <td><p  class="content-text" id='date_<%= trace.id %>'></p></td>
               </tr>
             <% }) %>
           </tbody>
